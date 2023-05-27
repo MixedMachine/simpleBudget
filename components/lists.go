@@ -32,7 +32,7 @@ func CreateListComponents(
 			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
-			incomeContainer := container.NewGridWithColumns(3, nameLabel, allocatedLabel, amountLabel, dateLabel)
+			incomeContainer := container.NewGridWithColumns(4, nameLabel, allocatedLabel, amountLabel, dateLabel)
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
 			buttonContainer := container.NewHBox(edtb, delb)
@@ -45,8 +45,9 @@ func CreateListComponents(
 			buttonContainer := c.Objects[1].(*fyne.Container)
 
 			nameLabel := contactContainer.Objects[0].(*widget.Label)
-			amountLabel := contactContainer.Objects[1].(*widget.Label)
-			dateLabel := contactContainer.Objects[2].(*widget.Label)
+			allocatedLabel := contactContainer.Objects[1].(*widget.Label)
+			amountLabel := contactContainer.Objects[2].(*widget.Label)
+			dateLabel := contactContainer.Objects[3].(*widget.Label)
 
 			edtb := buttonContainer.Objects[0].(*widget.Button)
 			delb := buttonContainer.Objects[1].(*widget.Button)
@@ -54,6 +55,7 @@ func CreateListComponents(
 			incomeID := (*incomes)[i].ID
 
 			nameLabel.SetText((*incomes)[i].Name)
+			allocatedLabel.SetText((*incomes)[i].Allocated)
 			amountLabel.SetText((*incomes)[i].Amount)
 			dateLabel.SetText((*incomes)[i].Date)
 
