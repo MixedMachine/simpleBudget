@@ -39,7 +39,6 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [ ] Add a "snapshot" button to save the current budget
 - [ ] Add a "load" button to load a saved budget
 - [ ] Add a "clear" button to clear the current budget
-- [ ] 
 
 ## Bugs
 - [ ] The application does not work without a .env file with a mongo uri
