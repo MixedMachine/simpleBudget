@@ -43,5 +43,7 @@ If you do not have make installed, you can run `go mod download` to install the 
 ## Bugs
 - [ ] The application does not work without a .env file with a mongo uri
 - [ ] The application does not work without a mongo database
+
+
 \* Add more bugs in github issues as they're found
 
