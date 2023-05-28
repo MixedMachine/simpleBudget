@@ -166,3 +166,23 @@ func (i *Income) AmountLeftToAllocate() string {
 
 	return fmt.Sprintf("%.2f", amount-allocated)
 }
+
+func SortIncomeByDate(income *[]Income) {
+	for i := 0; i < len(*income); i++ {
+		for j := 0; j < len(*income)-1; j++ {
+			if (*income)[j].Date > (*income)[j+1].Date {
+				(*income)[j], (*income)[j+1] = (*income)[j+1], (*income)[j]
+			}
+		}
+	}
+}
+
+func SortExpenseByDate(expense *[]Expense) {
+	for i := 0; i < len(*expense); i++ {
+		for j := 0; j < len(*expense)-1; j++ {
+			if (*expense)[j].Date > (*expense)[j+1].Date {
+				(*expense)[j], (*expense)[j+1] = (*expense)[j+1], (*expense)[j]
+			}
+		}
+	}
+}

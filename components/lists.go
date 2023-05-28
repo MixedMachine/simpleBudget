@@ -28,6 +28,7 @@ func CreateListComponents(
 	incomeList = widget.NewList(
 		func() int { return len(*incomes) },
 		func() fyne.CanvasObject {
+			models.SortIncomeByDate(incomes)
 			nameLabel := widget.NewLabel("Name")
 			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
@@ -128,6 +129,7 @@ func CreateListComponents(
 	expenseList = widget.NewList(
 		func() int { return len(*expenses) },
 		func() fyne.CanvasObject {
+			models.SortExpenseByDate(expenses)
 			nameLabel := widget.NewLabel("Name")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
@@ -236,6 +238,7 @@ func CreateListComponents(
 			return container.NewBorder(nil, nil, nil, buttonContainer, allocationContainer)
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
+
 			c := o.(*fyne.Container)
 
 			contactContainer := c.Objects[0].(*fyne.Container)
@@ -346,6 +349,18 @@ func CreateListComponents(
 			}
 		},
 	)
+
+	incomeList.OnSelected = func(id widget.ListItemID) {
+		incomeList.UnselectAll()
+	}
+
+	expenseList.OnSelected = func(id widget.ListItemID) {
+		expenseList.UnselectAll()
+	}
+
+	allocationList.OnSelected = func(id widget.ListItemID) {
+		allocationList.UnselectAll()
+	}
 
 	return map[string]*(widget.List){
 		"incomeList":     incomeList,
