@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	APP_NAME = "Budget Buddy"
+	APP_NAME = "Simple Budget App"
 )
 
 func init() {
@@ -36,6 +36,11 @@ func main() {
 
 	myApp := app.New()
 	myWindow := myApp.NewWindow(APP_NAME)
+	resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	myWindow.SetIcon(resourceIconPng)
 
 	income := NewIncomes()
 	expense := NewExpenses()
@@ -73,7 +78,7 @@ func main() {
 	)
 
 	footerContainerAdds := container.New(layout.NewHBoxLayout(),
-		container.New(layout.NewMaxLayout(), canvas.NewRectangle(color.Black), addButtons["addIncome"]),
+		addButtons["addIncome"],
 		addButtons["addExpense"],
 		addButtons["addAllocation"],
 	)
@@ -85,15 +90,11 @@ func main() {
 	)
 
 	incomeLabel := canvas.NewText("Income", color.White)
-	incomeLabel.Alignment = fyne.TextAlignCenter
 	incomeLabel.TextSize = 20
 	incomeLabel.TextStyle = fyne.TextStyle{Bold: true}
-	incomeLabel.SetMinSize(fyne.NewSize(100, 50))
 	expenseLabel := canvas.NewText("Expenses", color.White)
-	expenseLabel.Alignment = fyne.TextAlignCenter
 	expenseLabel.TextSize = 20
 	expenseLabel.TextStyle = fyne.TextStyle{Bold: true}
-	expenseLabel.SetMinSize(fyne.NewSize(100, 50))
 
 	transactions := container.New(layout.NewGridLayout(1),
 		container.NewBorder(
