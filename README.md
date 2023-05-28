@@ -9,12 +9,14 @@ This is a simple budget application that allows the user to add expenses and dep
 MONGO_URI=<your mongo uri>
 ```
 
+
 ## Table of Contents
 * [Installation](#installation)
 * [Usage](#usage)
 * [Future Features](#future-features)
 * [Bugs](#bugs)
 * [License](#license)
+
 
 ## Installation
 To install the application, clone the repository and run `make init` or `make build.win/lin` or `make run` to install the dependencies.
@@ -23,10 +25,15 @@ If you do not have make installed, you can run `go mod download` to install the 
 
 \* Note: The application will not run without a .env file with a mongo uri. For more info visit the official [MongoDB](https://www.mongodb.com/) website.
 
+
 ## Usage
 ![image](./pictures/preview1.png)
 ![image](./pictures/preview2.png)
-**TODO**: Add more pictures
+![image](./pictures/preview3.png)
+![image](./pictures/preview4.png)
+![image](./pictures/preview5.png)
+![image](./pictures/preview6.png)
+
 
 ## Future Features
 - [ ] Expense highlighting based on allocated funds
@@ -44,14 +51,14 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [ ] Add a "load" button to load a saved budget
 - [ ] Add a "clear" button to clear the current budget
 
+
 ## Bugs
 - [ ] The application does not work without a .env file with a mongo uri
 - [ ] The application does not work without a mongo database
 
-
 \* Add more bugs in github issues as they're found
 
-## License
+
 ## License:
 This project is licensed under the MIT License - see the 
 [LICENSE.md](./LICENSE.txt) file for details.
