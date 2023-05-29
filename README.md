@@ -19,12 +19,9 @@ MONGO_URI=<your mongo uri>
 
 
 ## Installation
-To install the application, clone the repository and run `make init` or `make build.win/lin` or `make run` to install the dependencies.
+To install the application, clone the store and run `make init` or `make build.win/lin` or `make run` to install the dependencies.
 
 If you do not have make installed, you can run `go mod download` to install the dependencies. The application can be run with `go run main.go` or `go build main.go` and then `./main.exe` or `./main` depending on your operating system.
-
-\* Note: The application will not run without a .env file with a mongo uri. For more info visit the official [MongoDB](https://www.mongodb.com/) website.
-
 
 ## Usage
 ![image](./pictures/preview1.png)
@@ -50,11 +47,13 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [ ] Add a "snapshot" button to save the current budget
 - [ ] Add a "load" button to load a saved budget
 - [ ] Add a "clear" button to clear the current budget
+- [ ] enable the user to add a notes
+- [ ] enable a switch to save locally or to remote database (paid feature)
+- [ ] Add login (paid feature)
 
 
 ## Bugs
-- [ ] The application does not work without a .env file with a mongo uri
-- [ ] The application does not work without a mongo database
+- [ ] The application uses local storage to save the budget items
 
 \* Add more bugs in github issues as they're found
 
