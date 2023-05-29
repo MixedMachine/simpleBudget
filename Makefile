@@ -1,5 +1,5 @@
-icon = icon.png
-appID = com.mixedmachine.simple-budget
+icon = ./assets/icon.png
+appID = com.mixedmachine.simplebudget
 
 init:
 	@echo "Initializing..."
@@ -12,16 +12,22 @@ init:
 
 build.win: init
 	@echo "Building windows executable..."
-	@go build -o bin/budget.exe ./...
+	@go build -o bin/budget.exe
 
 build.lin: init
 	@echo "Building linux executable..."
 	@go build -o bin/budget ./...
 
-run: build.win build.lin
+build.all: build.win build.lin
 	@echo "Building for all platforms complete."
+
+run.win: build.win
 	@echo "Running..."
-	@./bin
+	@./bin/budget.exe
+
+run.lin: build.lin
+	@echo "Running..."
+	@./bin/budget
 
 dev: init
 	@echo "Running in dev mode..."
@@ -43,35 +49,40 @@ secure:
 	@echo "Security..."
 	@gosec ./...
 
-package.mobile.and:
+pkg.init:
+	@go install fyne.io/fyne/v2/cmd/fyne@latest
+
+pkg.mobile.and: pkg.init
 	@echo "Packaging for android..."
 	@mkdir -p bin/mobile
 	fyne package -os android -appID $(appID) -icon $(icon)
+	@mv simple_budget_app.apk bin/mobile/simple_budget_app.apk
 
-package.mobile.ios:
+pkg.mobile.ios: pkg.init
 	@echo "Packaging for ios..."
 	@mkdir -p bin/mobile
 	fyne package -os ios -appID $(appID) -icon $(icon)
+	@mv simple_budget_app.ipa bin/mobile/simple_budget_app.ipa
 
-package.mobile.all: package.mobile.and package.mobile.ios
+pkg.mobile.all: pkg.mobile.and pkg.mobile.ios
 	@echo "Packaging for all mobile platforms complete."
 
-package.desktop.win:
+pkg.desktop.win: pkg.init
 	@echo "Packaging for windows..."
 	@mkdir -p bin/desktop
-	fyne package -os windows -icon $(icon)
+	fyne package --exe bin/desktop --os windows --icon $(icon)
 
-package.desktop.lin:
+pkg.desktop.lin: pkg.init
 	@echo "Packaging for linux..."
 	@mkdir -p bin/desktop
-	fyne package -os linux -icon $(icon)
+	fyne package --exe bin/desktop --os linux --icon $(icon)
 
-package.desktop.mac:
+pkg.desktop.mac: pkg.init
 	@echo "Packaging for mac..."
 	@mkdir -p bin/desktop
-	fyne package -os darwin -icon $(icon)
+	fyne package --exe bin/desktop --os darwin --icon $(icon)
 
-package.desktop.all: package.desktop.linux package.desktop.mac package.desktop.win
+pkg.desktop.all: pkg.desktop.linux pkg.desktop.mac pkg.desktop.win
 	@echo "Packaging for all desktop platforms complete."
 
 clean:
@@ -79,8 +90,12 @@ clean:
 	@rm -rf bin/
 
 .PHONY: init \
-build.win build.lin run dev \
+build.win build.lin build.all \
+run.win run.lin dev \
 test scan secure \
-package.mobile.and package.mobile.ios package.mobile.all \
-package.desktop.win package.desktop.lin package.desktop.mac package.desktop.all \
+pkg.init \
+pkg.mobile.and pkg.mobile.ios \
+pkg.mobile.all \
+pkg.desktop.win pkg.desktop.lin pkg.desktop.mac \
+pkg.desktop.all \
 clean
