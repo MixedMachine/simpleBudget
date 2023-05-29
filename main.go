@@ -26,9 +26,6 @@ func init() {
 	if err != nil {
 		log.Info("Error loading .env file")
 	}
-
-	store.MONGO_URI = "mongodb+srv://MixedMachine:Eugene23@personalprojects.zpn6jfo.mongodb.net/?retryWrites=true&w=majority"
-
 }
 
 func main() {

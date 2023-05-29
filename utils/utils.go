@@ -8,7 +8,7 @@ import (
 func CompareDates(date1, date2 time.Time) int {
 	if date1.After(date2) {
 		return 1
-	} else if date1.Before(date2) {
+	} else if date1.Before(date2) || date1.Equal(date2) {
 		return -1
 	} else {
 		return 0
