@@ -1,18 +1,14 @@
 package models
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
-	"strconv"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type transaction interface {
 	Income | Expense
 }
 
-func GetIncomeByID(incomes *[]Income, id primitive.ObjectID) Income {
+func GetIncomeByID(incomes *[]Income, id uint) Income {
 	for _, income := range *incomes {
 		if income.ID == id {
 			return income
@@ -21,7 +17,7 @@ func GetIncomeByID(incomes *[]Income, id primitive.ObjectID) Income {
 	return Income{}
 }
 
-func GetExpenseByID(expenses *[]Expense, id primitive.ObjectID) Expense {
+func GetExpenseByID(expenses *[]Expense, id uint) Expense {
 	for _, expense := range *expenses {
 		if expense.ID == id {
 			return expense
@@ -64,24 +60,10 @@ func GetExpenseNames(expenses *[]Expense) []string {
 	return names
 }
 
-func AllocatFunds(income *Income, expense *Expense, amount string) *Allocation {
-	prevAmount, err := strconv.ParseFloat(income.Allocated, 64)
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	allocated, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	maxAmount, err := strconv.ParseFloat(income.Amount, 64)
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
+func AllocatFunds(income *Income, expense *Expense, amount float64) *Allocation {
+	prevAmount := income.Allocated
+	allocated := amount
+	maxAmount := income.Amount
 
 	allocated += prevAmount
 
@@ -90,9 +72,7 @@ func AllocatFunds(income *Income, expense *Expense, amount string) *Allocation {
 		return nil
 	}
 
-	newAmount := fmt.Sprintf("%.2f", allocated)
-
-	income.Allocated = newAmount
+	income.Allocated = allocated
 
 	return &Allocation{
 		Amount:       amount,
@@ -101,29 +81,19 @@ func AllocatFunds(income *Income, expense *Expense, amount string) *Allocation {
 	}
 }
 
-func DeallocatFunds(income *Income, expense *Expense, amount string) {
-	prevAmount, err := strconv.ParseFloat(income.Allocated, 64)
-	if err != nil {
-		log.Fatal(err)
+func DeallocatFunds(income *Income, expense *Expense, amount float64) {
+	prevAmount := income.Allocated
+
+	amount -= prevAmount
+
+	if amount < 0 {
+		log.Error("Cannot deallocate more than allocated")
 	}
 
-	deallocated, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	deallocated = prevAmount - deallocated
-
-	if deallocated < 0 {
-		log.Fatal("Cannot deallocate more than allocated")
-	}
-
-	newAmount := fmt.Sprintf("%.2f", deallocated)
-
-	income.Allocated = newAmount
+	income.Allocated = amount
 }
 
-func ReallocatFunds(income *Income, expense *Expense, originalAmount, newAmount string) *Allocation {
+func ReallocatFunds(income *Income, expense *Expense, originalAmount, newAmount float64) *Allocation {
 	var allocation *Allocation
 
 	DeallocatFunds(income, expense, originalAmount)
@@ -142,35 +112,14 @@ func Filter[T transaction](transactions *[]T, filterFunc func(t T) bool) *[]T {
 	return &filtered
 }
 
-func MapExpenseAllocations(expenses *[]Expense, allocations *[]Allocation) map[string]string {
-	allocationsMap := make(map[string]string)
-	for _, expense := range *expenses {
-		allocationsMap[expense.ID.Hex()] = "0"
-	}
-	for _, allocation := range *allocations {
-		allocationsMap[allocation.ToExpenseID.Hex()] = allocation.Amount
-	}
-	return allocationsMap
-}
-
-func (i *Income) AmountLeftToAllocate() string {
-	allocated, err := strconv.ParseFloat(i.Allocated, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	amount, err := strconv.ParseFloat(i.Amount, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return fmt.Sprintf("%.2f", amount-allocated)
+func (i *Income) AmountLeftToAllocate() float64 {
+	return i.Amount - i.Allocated
 }
 
 func SortIncomeByDate(income *[]Income) {
 	for i := 0; i < len(*income); i++ {
 		for j := 0; j < len(*income)-1; j++ {
-			if (*income)[j].Date > (*income)[j+1].Date {
+			if (*income)[j].Date.After((*income)[j+1].Date) {
 				(*income)[j], (*income)[j+1] = (*income)[j+1], (*income)[j]
 			}
 		}
@@ -180,7 +129,7 @@ func SortIncomeByDate(income *[]Income) {
 func SortExpenseByDate(expense *[]Expense) {
 	for i := 0; i < len(*expense); i++ {
 		for j := 0; j < len(*expense)-1; j++ {
-			if (*expense)[j].Date > (*expense)[j+1].Date {
+			if (*expense)[j].Date.After((*expense)[j+1].Date) {
 				(*expense)[j], (*expense)[j+1] = (*expense)[j+1], (*expense)[j]
 			}
 		}

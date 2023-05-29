@@ -2,3 +2,5 @@ bin/*
 .idea/*
 *.adb
 .env
+*.db
+go.sum

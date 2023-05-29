@@ -3,9 +3,10 @@ package components
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/mixedmachine/simple-budget-app/models"
-	repo "github.com/mixedmachine/simple-budget-app/repository"
+	"github.com/mixedmachine/simple-budget-app/store"
 	"github.com/mixedmachine/simple-budget-app/utils"
 
 	"fyne.io/fyne/v2"
@@ -17,7 +18,7 @@ import (
 
 func CreateAddButtons(
 	myWindow *fyne.Window,
-	ic, ec, ac *repo.Collection,
+	repo *store.SqlDB,
 	incomes *[]models.Income, expenses *[]models.Expense, allocations *[]models.Allocation,
 	listComponents map[string]*(widget.List),
 ) map[string]*(widget.Button) {
@@ -54,17 +55,26 @@ func CreateAddButtons(
 
 		dialogAdd := dialog.NewForm("Add Income", "Add", "Cancel", formItems, func(b bool) {
 			if b {
-				i := models.Income{
-					Name:      entryName.Text,
-					Amount:    entryAmount.Text,
-					Date:      entryDate.Text,
-					Allocated: "0",
-				}
-
-				if err := repo.Create(ic, &i); err != nil {
+				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
 					log.Fatal(err)
 				}
-				repo.GetAll(ic, incomes)
+				date, err := time.Parse("2006-01-02", entryDate.Text)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				i := models.Income{
+					Name:      entryName.Text,
+					Amount:    amount,
+					Date:      date,
+					Allocated: 0,
+				}
+
+				if err := store.Create(repo, &i); err != nil {
+					log.Fatal(err)
+				}
+				store.GetAll(repo, incomes)
 				incomeList.Refresh()
 			}
 		}, *myWindow)
@@ -104,16 +114,25 @@ func CreateAddButtons(
 
 		dialogAdd := dialog.NewForm("Add Expense", "Add", "Cancel", formItems, func(b bool) {
 			if b {
-				e := models.Expense{
-					Name:   entryName.Text,
-					Amount: entryAmount.Text,
-					Date:   entryDate.Text,
-				}
-
-				if err := repo.Create(ec, &e); err != nil {
+				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
 					log.Fatal(err)
 				}
-				repo.GetAll(ec, expenses)
+				date, err := time.Parse("2006-01-02", entryDate.Text)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				e := models.Expense{
+					Name:   entryName.Text,
+					Amount: amount,
+					Date:   date,
+				}
+
+				if err := store.Create(repo, &e); err != nil {
+					log.Fatal(err)
+				}
+				store.GetAll(repo, expenses)
 				expenseList.Refresh()
 			}
 		}, *myWindow)
@@ -154,23 +173,28 @@ func CreateAddButtons(
 
 				toExpense := models.GetExpenseByName(expenses, entryToExpenseID.Selected)
 
+				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
+					log.Fatal(err)
+				}
+
 				a := models.AllocatFunds(
 					&fromIncome,
 					&toExpense,
-					entryAmount.Text,
+					amount,
 				)
 
 				if a == nil {
 					return
 				}
 
-				repo.Update(ic, fromIncome.ID, fromIncome)
+				store.Update(repo, fromIncome.ID, fromIncome)
 
-				if err := repo.Create(ac, &a); err != nil {
+				if err := store.Create(repo, &a); err != nil {
 					log.Fatal(err)
 				}
-				repo.GetAll(ac, allocations)
-				repo.GetAll(ic, incomes)
+				store.GetAll(repo, allocations)
+				store.GetAll(repo, incomes)
 				allocationList.Refresh()
 				incomeList.Refresh()
 			}

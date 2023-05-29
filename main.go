@@ -3,7 +3,7 @@ package main
 import (
 	. "github.com/mixedmachine/simple-budget-app/components"
 	. "github.com/mixedmachine/simple-budget-app/models"
-	repo "github.com/mixedmachine/simple-budget-app/repository"
+	"github.com/mixedmachine/simple-budget-app/store"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"image/color"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -25,10 +24,11 @@ const (
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Info("Error loading .env file")
 	}
 
-	repo.MONGO_URI = os.Getenv("MONGO_URI")
+	store.MONGO_URI = "mongodb+srv://MixedMachine:Eugene23@personalprojects.zpn6jfo.mongodb.net/?retryWrites=true&w=majority"
+
 }
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 	myWindow := myApp.NewWindow(APP_NAME)
 	resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png")
 	if err != nil {
-		log.Fatal(err)
+		log.Info(err)
 	}
 	myWindow.SetIcon(resourceIconPng)
 
@@ -46,33 +46,30 @@ func main() {
 	expense := NewExpenses()
 	allocation := NewAllocations()
 
-	ctx, client := repo.InitializeDB()
-	defer client.Disconnect(*ctx)
+	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE))
 
-	collections := repo.CreateCollections(ctx, client)
-
-	err = repo.GetAll(collections["income"], income)
+	err = store.GetAll(repo, income)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = repo.GetAll(collections["expense"], expense)
+	err = store.GetAll(repo, expense)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = repo.GetAll(collections["allocation"], allocation)
+	err = store.GetAll(repo, allocation)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	budget := CreateListComponents(
 		&myWindow,
-		collections["income"], collections["expense"], collections["allocation"],
+		repo,
 		income, expense, allocation,
 	)
 
 	addButtons := CreateAddButtons(
 		&myWindow,
-		collections["income"], collections["expense"], collections["allocation"],
+		repo,
 		income, expense, allocation,
 		budget,
 	)

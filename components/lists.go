@@ -1,23 +1,24 @@
 package components
 
 import (
+	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/mixedmachine/simple-budget-app/models"
-	repo "github.com/mixedmachine/simple-budget-app/repository"
+	"github.com/mixedmachine/simple-budget-app/store"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	log "github.com/sirupsen/logrus"
 )
 
 func CreateListComponents(
 	myWindow *fyne.Window,
-	ic, ec, ac *(repo.Collection),
+	repo *(store.SqlDB),
 	incomes *[]models.Income, expenses *[]models.Expense, allocations *[]models.Allocation,
 ) map[string]*(widget.List) {
 	var err error
@@ -56,9 +57,9 @@ func CreateListComponents(
 			incomeID := (*incomes)[i].ID
 
 			nameLabel.SetText((*incomes)[i].Name)
-			allocatedLabel.SetText((*incomes)[i].Allocated)
-			amountLabel.SetText((*incomes)[i].Amount)
-			dateLabel.SetText((*incomes)[i].Date)
+			allocatedLabel.SetText(fmt.Sprintf("%.2f", (*incomes)[i].Allocated))
+			amountLabel.SetText(fmt.Sprintf("%.2f", (*incomes)[i].Amount))
+			dateLabel.SetText((*incomes)[i].Date.Format("2006-01-02"))
 
 			edtb.OnTapped = func() {
 				incomeEntryName := widget.NewEntry()
@@ -73,18 +74,28 @@ func CreateListComponents(
 
 				dialogBox := dialog.NewForm("Edit Income", "Save", "Cancel", incomeFormItems, func(b bool) {
 					if b {
-						income := models.Income{
-							ID:     incomeID,
-							Name:   incomeEntryName.Text,
-							Amount: incomeEntryAmount.Text,
-							Date:   incomeEntryDate.Text,
+						amount, err := strconv.ParseFloat(incomeEntryAmount.Text, 64)
+						if err != nil {
+							log.Fatal(err)
+						}
+						date, error := time.Parse("2006-01-02", incomeEntryDate.Text)
+
+						if error != nil {
+							log.Fatal(error)
 						}
 
-						if err := repo.Update(ic, incomeID, income); err != nil {
+						income := &models.Income{
+							ID:     incomeID,
+							Name:   incomeEntryName.Text,
+							Amount: amount,
+							Date:   date,
+						}
+
+						if err := store.Update(repo, incomeID, income); err != nil {
 							log.Fatal(err)
 						}
 
-						if err = repo.GetAll(ic, incomes); err != nil {
+						if err = store.GetAll(repo, incomes); err != nil {
 							log.Fatal(err)
 						}
 					}
@@ -92,8 +103,8 @@ func CreateListComponents(
 				}, *myWindow)
 
 				incomeEntryName.SetText((*incomes)[i].Name)
-				incomeEntryAmount.SetText((*incomes)[i].Amount)
-				incomeEntryDate.SetText((*incomes)[i].Date)
+				incomeEntryAmount.SetText(fmt.Sprintf("%.2f", (*incomes)[i].Amount))
+				incomeEntryDate.SetText((*incomes)[i].Date.Format("2006-01-02"))
 
 				dialogBox.Resize(fyne.NewSize(500, 300))
 
@@ -107,10 +118,10 @@ func CreateListComponents(
 					"Do you wish to delete this income?",
 					func(b bool) {
 						if b {
-							if err := repo.Delete(ic, incomeID); err != nil {
+							if err := store.Delete(repo, incomeID, &models.Income{}); err != nil {
 								log.Fatal(err)
 							}
-							if err = repo.GetAll(ic, incomes); err != nil {
+							if err = store.GetAll(repo, incomes); err != nil {
 								log.Fatal(err)
 							}
 						}
@@ -155,8 +166,8 @@ func CreateListComponents(
 			expenseID := (*expenses)[i].ID
 
 			nameLabel.SetText((*expenses)[i].Name)
-			amountLabel.SetText((*expenses)[i].Amount)
-			dateLabel.SetText((*expenses)[i].Date)
+			amountLabel.SetText(fmt.Sprintf("%.2f", (*expenses)[i].Amount))
+			dateLabel.SetText((*expenses)[i].Date.Format("2006-01-02"))
 
 			edtb.OnTapped = func() {
 
@@ -172,17 +183,27 @@ func CreateListComponents(
 
 				dialogBox := dialog.NewForm("Edit Expense", "Save", "Cancel", expensesFormItems, func(b bool) {
 					if b {
+						amount, err := strconv.ParseFloat(expenseEntryAmount.Text, 64)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						date, err := time.Parse("2006-01-02", expenseEntryDate.Text)
+						if err != nil {
+							log.Fatal(err)
+						}
+
 						expense := models.Expense{
 							ID:     expenseID,
 							Name:   expenseEntryName.Text,
-							Amount: expenseEntryAmount.Text,
-							Date:   expenseEntryDate.Text,
+							Amount: amount,
+							Date:   date,
 						}
-						expense.ID = primitive.NewObjectID()
-						if err := repo.Update(ic, expense.ID, &expense); err != nil {
+
+						if err := store.Update(repo, expenseID, &expense); err != nil {
 							log.Fatal(err)
 						}
-						if err = repo.GetAll(ec, expenses); err != nil {
+						if err = store.GetAll(repo, expenses); err != nil {
 							log.Fatal(err)
 						}
 					}
@@ -190,8 +211,8 @@ func CreateListComponents(
 				}, *myWindow)
 
 				expenseEntryName.SetText((*expenses)[i].Name)
-				expenseEntryAmount.SetText((*expenses)[i].Amount)
-				expenseEntryDate.SetText((*expenses)[i].Date)
+				expenseEntryAmount.SetText(fmt.Sprintf("%.2f", (*expenses)[i].Amount))
+				expenseEntryDate.SetText((*expenses)[i].Date.Format("2006-01-02"))
 
 				dialogBox.Resize(fyne.NewSize(500, 300))
 
@@ -206,10 +227,10 @@ func CreateListComponents(
 					"Do you wish to delete this expense?",
 					func(b bool) {
 						if b {
-							if err := repo.Delete(ec, expenseID); err != nil {
+							if err := store.Delete(repo, expenseID, &models.Expense{}); err != nil {
 								log.Fatal(err)
 							}
-							if err = repo.GetAll(ec, expenses); err != nil {
+							if err = store.GetAll(repo, expenses); err != nil {
 								log.Fatal(err)
 							}
 						}
@@ -255,7 +276,7 @@ func CreateListComponents(
 
 			toLabel.SetText(models.GetExpenseByID(expenses, (*allocations)[i].ToExpenseID).Name)
 			fromLabel.SetText(models.GetIncomeByID(incomes, (*allocations)[i].FromIncomeID).Name)
-			amountLabel.SetText((*allocations)[i].Amount)
+			amountLabel.SetText(fmt.Sprintf("%.2f", (*allocations)[i].Amount))
 
 			edtb.OnTapped = func() {
 
@@ -277,12 +298,16 @@ func CreateListComponents(
 					if b {
 						fromIncome := models.GetIncomeByName(incomes, allocationEntryFromIncomeID.Text)
 						toExpense := models.GetExpenseByName(expenses, allocationEntryToExpenseID.Text)
+						amount, err := strconv.ParseFloat(allocationEntryAmount.Text, 64)
+						if err != nil {
+							log.Fatal(err)
+						}
 
 						a := models.ReallocatFunds(
 							&fromIncome,
 							&toExpense,
 							(*allocations)[i].Amount,
-							allocationEntryAmount.Text,
+							amount,
 						)
 
 						if a == nil {
@@ -291,14 +316,14 @@ func CreateListComponents(
 
 						a.ID = allocationID
 
-						if err := repo.Update(ic, fromIncome.ID, fromIncome); err != nil {
+						if err := store.Update(repo, fromIncome.ID, fromIncome); err != nil {
 							log.Fatal(err)
 						}
-						if err := repo.Update(ac, a.ID, &a); err != nil {
+						if err := store.Update(repo, a.ID, &a); err != nil {
 							log.Fatal(err)
 						}
-						repo.GetAll(ac, allocations)
-						repo.GetAll(ic, incomes)
+						store.GetAll(repo, allocations)
+						store.GetAll(repo, incomes)
 						allocationList.Refresh()
 						incomeList.Refresh()
 
@@ -306,7 +331,7 @@ func CreateListComponents(
 					allocationList.Refresh()
 				}, *myWindow)
 
-				allocationEntryAmount.SetText((*allocations)[i].Amount)
+				allocationEntryAmount.SetText(fmt.Sprintf("%.2f", (*allocations)[i].Amount))
 
 				dialogBox.Resize(fyne.NewSize(500, 300))
 				dialogBox.Show()
@@ -329,14 +354,14 @@ func CreateListComponents(
 								(*allocations)[i].Amount,
 							)
 
-							if err := repo.Update(ic, fromIncome.ID, fromIncome); err != nil {
+							if err := store.Update(repo, fromIncome.ID, fromIncome); err != nil {
 								log.Fatal(err)
 							}
-							if err := repo.Delete(ac, allocationID); err != nil {
+							if err := store.Delete(repo, allocationID, models.NewAllocations()); err != nil {
 								log.Fatal(err)
 							}
-							repo.GetAll(ac, allocations)
-							repo.GetAll(ic, incomes)
+							store.GetAll(repo, allocations)
+							store.GetAll(repo, incomes)
 						}
 						allocationList.Refresh()
 						incomeList.Refresh()

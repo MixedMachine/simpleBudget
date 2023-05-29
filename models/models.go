@@ -1,47 +1,35 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
 
-type Contact struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	FirstName string             `bson:"firstname,omitempty"`
-	LastName  string             `bson:"lastname,omitempty"`
-	Email     string             `bson:"email,omitempty"`
-	Phone     string             `bson:"phone,omitempty"`
-}
-
 type User struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	Username string             `bson:"username,omitempty"`
-	Password string             `bson:"password,omitempty"`
+	ID       uint   `gorm:"primaryKey;autoIncrement"`
+	Username string `gorm:"unique"`
+	Password string `gorm:"not null"`
 }
 
 type Income struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	Name      string             `bson:"name,omitempty"`
-	Amount    string             `bson:"amount,omitempty"`
-	Date      string             `bson:"date,omitempty"`
-	Allocated string             `bson:"allocated,omitempty"`
+	ID        uint      `gorm:"primaryKey;autoIncrement"`
+	Name      string    `gorm:"unique;not null"`
+	Amount    float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
+	Date      time.Time `gorm:"type:date;not null"`
+	Allocated float64   `gorm:"ignore"`
 }
 
 type Expense struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty"`
-	Name   string             `bson:"name,omitempty"`
-	Amount string             `bson:"amount,omitempty"`
-	Date   string             `bson:"date,omitempty"`
+	ID     uint      `gorm:"primaryKey;autoIncrement"`
+	Name   string    `gorm:"unique;not null"`
+	Amount float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
+	Date   time.Time `gorm:"type:date;not null"`
 }
 
 type Allocation struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Amount       string             `bson:"amount,omitempty"`
-	FromIncomeID primitive.ObjectID `bson:"fromincomeid,omitempty"`
-	ToExpenseID  primitive.ObjectID `bson:"toexpenseid,omitempty"`
-}
-
-type BudgetElement interface {
-	Income | Expense | Allocation
+	ID           uint    `gorm:"primaryKey;autoIncrement"`
+	Amount       float64 `gorm:"type:decimal(10,2);default:0.00";not null`
+	FromIncomeID uint    `gorm:"index:idx_from_income_id;foreignKey:FromIncomeID"`
+	ToExpenseID  uint    `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
 }
 
 func NewIncomes() *[]Income {
