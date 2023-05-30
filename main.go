@@ -1,6 +1,9 @@
 package main
 
 import (
+	"image/color"
+	"path/filepath"
+
 	. "github.com/mixedmachine/simple-budget-app/components"
 	. "github.com/mixedmachine/simple-budget-app/models"
 	"github.com/mixedmachine/simple-budget-app/store"
@@ -11,9 +14,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"github.com/joho/godotenv"
-
-	"image/color"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,28 +22,26 @@ const (
 )
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Info("Error loading .env file")
-	}
+	godotenv.Load()
 }
 
 func main() {
 	var err error
+	var dbLocation string
 
-	myApp := app.New()
+	myApp := app.NewWithID("com.mixedmachine.simplebudgetapp")
 	myWindow := myApp.NewWindow(APP_NAME)
-	resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png")
-	if err != nil {
-		log.Info(err)
+	if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
+		myWindow.SetIcon(resourceIconPng)
 	}
-	myWindow.SetIcon(resourceIconPng)
+
+	dbLocation = filepath.Join(myApp.Storage().RootURI().Path(), store.SQLITE_FILE)
 
 	income := NewIncomes()
 	expense := NewExpenses()
 	allocation := NewAllocations()
 
-	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE))
+	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation, fyne.CurrentDevice().IsMobile()), dbLocation)
 
 	err = store.GetAll(repo, income)
 	if err != nil {
