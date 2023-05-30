@@ -29,12 +29,18 @@ func CreateListComponents(
 	incomeList = widget.NewList(
 		func() int { return len(*incomes) },
 		func() fyne.CanvasObject {
+			var cols int
 			models.SortIncomeByDate(incomes)
 			nameLabel := widget.NewLabel("Name")
 			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
-			incomeContainer := container.NewGridWithColumns(4, nameLabel, allocatedLabel, amountLabel, dateLabel)
+			if fyne.CurrentDevice().IsMobile() {
+				cols = 2
+			} else {
+				cols = 4
+			}
+			incomeContainer := container.NewGridWithColumns(cols, dateLabel, nameLabel, allocatedLabel, amountLabel)
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
 			buttonContainer := container.NewHBox(edtb, delb)
@@ -46,10 +52,10 @@ func CreateListComponents(
 			contactContainer := c.Objects[0].(*fyne.Container)
 			buttonContainer := c.Objects[1].(*fyne.Container)
 
-			nameLabel := contactContainer.Objects[0].(*widget.Label)
-			allocatedLabel := contactContainer.Objects[1].(*widget.Label)
-			amountLabel := contactContainer.Objects[2].(*widget.Label)
-			dateLabel := contactContainer.Objects[3].(*widget.Label)
+			dateLabel := contactContainer.Objects[0].(*widget.Label)
+			nameLabel := contactContainer.Objects[1].(*widget.Label)
+			allocatedLabel := contactContainer.Objects[2].(*widget.Label)
+			amountLabel := contactContainer.Objects[3].(*widget.Label)
 
 			edtb := buttonContainer.Objects[0].(*widget.Button)
 			delb := buttonContainer.Objects[1].(*widget.Button)
@@ -57,8 +63,8 @@ func CreateListComponents(
 			incomeID := (*incomes)[i].ID
 
 			nameLabel.SetText((*incomes)[i].Name)
-			allocatedLabel.SetText(fmt.Sprintf("%.2f", (*incomes)[i].Allocated))
-			amountLabel.SetText(fmt.Sprintf("%.2f", (*incomes)[i].Amount))
+			allocatedLabel.SetText(fmt.Sprintf("allocated: $ %.2f", (*incomes)[i].Allocated))
+			amountLabel.SetText(fmt.Sprintf("total: $ %.2f", (*incomes)[i].Amount))
 			dateLabel.SetText((*incomes)[i].Date.Format("2006-01-02"))
 
 			edtb.OnTapped = func() {
@@ -140,11 +146,18 @@ func CreateListComponents(
 	expenseList = widget.NewList(
 		func() int { return len(*expenses) },
 		func() fyne.CanvasObject {
+			var cols int
 			models.SortExpenseByDate(expenses)
 			nameLabel := widget.NewLabel("Name")
+			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
-			expenseContainer := container.NewGridWithColumns(3, nameLabel, amountLabel, dateLabel)
+			if fyne.CurrentDevice().IsMobile() {
+				cols = 2
+			} else {
+				cols = 4
+			}
+			expenseContainer := container.NewGridWithColumns(cols, dateLabel, nameLabel, allocatedLabel, amountLabel)
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
 			buttonContainer := container.NewHBox(edtb, delb)
@@ -156,9 +169,10 @@ func CreateListComponents(
 			contactContainer := c.Objects[0].(*fyne.Container)
 			buttonContainer := c.Objects[1].(*fyne.Container)
 
-			nameLabel := contactContainer.Objects[0].(*widget.Label)
-			amountLabel := contactContainer.Objects[1].(*widget.Label)
-			dateLabel := contactContainer.Objects[2].(*widget.Label)
+			dateLabel := contactContainer.Objects[0].(*widget.Label)
+			nameLabel := contactContainer.Objects[1].(*widget.Label)
+			allocatedLabel := contactContainer.Objects[2].(*widget.Label)
+			amountLabel := contactContainer.Objects[3].(*widget.Label)
 
 			edtb := buttonContainer.Objects[0].(*widget.Button)
 			delb := buttonContainer.Objects[1].(*widget.Button)
@@ -166,7 +180,12 @@ func CreateListComponents(
 			expenseID := (*expenses)[i].ID
 
 			nameLabel.SetText((*expenses)[i].Name)
-			amountLabel.SetText(fmt.Sprintf("%.2f", (*expenses)[i].Amount))
+			allocatedLabel.SetText(
+				fmt.Sprintf("allocated: $ %.2f",
+					store.GetSumWhere(repo, allocations, "Amount", "to_expense_id = ?", expenseID),
+				),
+			)
+			amountLabel.SetText(fmt.Sprintf("total: $ %.2f", (*expenses)[i].Amount))
 			dateLabel.SetText((*expenses)[i].Date.Format("2006-01-02"))
 
 			edtb.OnTapped = func() {
@@ -211,7 +230,7 @@ func CreateListComponents(
 				}, *myWindow)
 
 				expenseEntryName.SetText((*expenses)[i].Name)
-				expenseEntryAmount.SetText(fmt.Sprintf("%.2f", (*expenses)[i].Amount))
+				expenseEntryAmount.SetText(fmt.Sprintf("$ %.2f", (*expenses)[i].Amount))
 				expenseEntryDate.SetText((*expenses)[i].Date.Format("2006-01-02"))
 
 				dialogBox.Resize(fyne.NewSize(500, 300))
