@@ -41,13 +41,13 @@ func GetWhere[T any](s *SqlDB, element T, query string, args ...interface{}) err
 
 func GetSum[T any](s *SqlDB, element T, column string) float64 {
 	var sum float64
-	s.db.Model(element).Select("sum(" + column + ")").Scan(&sum)
+	s.db.Model(element).Select("total(" + column + ")").Scan(&sum)
 	return sum
 }
 
 func GetSumWhere[T any](s *SqlDB, element T, column, query string, args ...interface{}) float64 {
 	var sum float64
-	s.db.Model(element).Where(query, args...).Select("sum(" + column + ")").Scan(&sum)
+	s.db.Model(element).Where(query, args...).Select("total(" + column + ")").Scan(&sum)
 	return sum
 }
 
