@@ -41,7 +41,7 @@ func main() {
 	expense := NewExpenses()
 	allocation := NewAllocations()
 
-	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation, fyne.CurrentDevice().IsMobile()), dbLocation)
+	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation))
 
 	err = store.GetAll(repo, income)
 	if err != nil {
