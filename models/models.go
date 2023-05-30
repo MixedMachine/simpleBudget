@@ -27,7 +27,7 @@ type Expense struct {
 
 type Allocation struct {
 	ID           uint    `gorm:"primaryKey;autoIncrement"`
-	Amount       float64 `gorm:"type:decimal(10,2);default:0.00";not null`
+	Amount       float64 `gorm:"type:decimal(10,2);default:0.00;not null"`
 	FromIncomeID uint    `gorm:"index:idx_from_income_id;foreignKey:FromIncomeID"`
 	ToExpenseID  uint    `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
 }
