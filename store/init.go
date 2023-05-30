@@ -15,9 +15,9 @@ import (
 type SQLType string
 
 const (
-	SQLITE   SQLType = "sqlite"
-	POSTGRES SQLType = "postgres"
-	SQLITE_FILE = "budget.db"
+	SQLITE      SQLType = "sqlite"
+	POSTGRES    SQLType = "postgres"
+	SQLITE_FILE         = "budget.db"
 )
 
 func InitializeSQL(sqlType SQLType, dbLocation string) *gorm.DB {
