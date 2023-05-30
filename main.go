@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"path/filepath"
 
@@ -56,15 +57,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, income, "amount")), color.White)
+	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, expense, "amount")), color.White)
+
 	budget := CreateListComponents(
 		&myWindow,
-		repo,
+		repo, incomeTotalLabel, expenseTotalLabel,
 		income, expense, allocation,
 	)
 
 	addButtons := CreateAddButtons(
 		&myWindow,
-		repo,
+		repo, incomeTotalLabel, expenseTotalLabel,
 		income, expense, allocation,
 		budget,
 	)
@@ -84,20 +88,31 @@ func main() {
 	incomeLabel := canvas.NewText("Income", color.White)
 	incomeLabel.TextSize = 20
 	incomeLabel.TextStyle = fyne.TextStyle{Bold: true}
+
 	expenseLabel := canvas.NewText("Expenses", color.White)
 	expenseLabel.TextSize = 20
 	expenseLabel.TextStyle = fyne.TextStyle{Bold: true}
 
+	incomeHeader := container.New(layout.NewHBoxLayout(),
+		incomeLabel,
+		incomeTotalLabel,
+	)
+
+	expenseHeader := container.New(layout.NewHBoxLayout(),
+		expenseLabel,
+		expenseTotalLabel,
+	)
+
 	transactions := container.New(layout.NewGridLayout(1),
 		container.NewBorder(
-			incomeLabel,
+			incomeHeader,
 			nil,
 			nil,
 			nil,
 			budget["incomeList"],
 		),
 		container.NewBorder(
-			expenseLabel,
+			expenseHeader,
 			nil,
 			nil,
 			nil,

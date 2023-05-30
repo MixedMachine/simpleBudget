@@ -10,6 +10,7 @@ import (
 	"github.com/mixedmachine/simple-budget-app/utils"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
@@ -18,7 +19,7 @@ import (
 
 func CreateAddButtons(
 	myWindow *fyne.Window,
-	repo *store.SqlDB,
+	repo *store.SqlDB, incomeTotalLabel, expenseTotalLabel *canvas.Text,
 	incomes *[]models.Income, expenses *[]models.Expense, allocations *[]models.Allocation,
 	listComponents map[string]*(widget.List),
 ) map[string]*(widget.Button) {
@@ -53,8 +54,8 @@ func CreateAddButtons(
 
 		formItems := []*widget.FormItem{nameForm, amountForm, dateForm}
 
-		dialogAdd := dialog.NewForm("Add Income", "Add", "Cancel", formItems, func(b bool) {
-			if b {
+		dialogAdd := dialog.NewForm("Add Income", "Add", "Cancel", formItems, func(ok bool) {
+			if ok {
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
 					log.Fatal(err)
@@ -76,6 +77,8 @@ func CreateAddButtons(
 				}
 				store.GetAll(repo, incomes)
 				incomeList.Refresh()
+				incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+				incomeTotalLabel.Refresh()
 			}
 		}, *myWindow)
 
@@ -112,8 +115,8 @@ func CreateAddButtons(
 
 		formItems := []*widget.FormItem{nameForm, amountForm, dateForm}
 
-		dialogAdd := dialog.NewForm("Add Expense", "Add", "Cancel", formItems, func(b bool) {
-			if b {
+		dialogAdd := dialog.NewForm("Add Expense", "Add", "Cancel", formItems, func(ok bool) {
+			if ok {
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
 					log.Fatal(err)
@@ -134,6 +137,8 @@ func CreateAddButtons(
 				}
 				store.GetAll(repo, expenses)
 				expenseList.Refresh()
+				expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+				expenseTotalLabel.Refresh()
 			}
 		}, *myWindow)
 
@@ -167,8 +172,8 @@ func CreateAddButtons(
 
 		formItems := []*widget.FormItem{toExpenseIDForm, fromIncomeIDForm, amountForm}
 
-		dialogAdd := dialog.NewForm("Add Allocation", "Add", "Cancel", formItems, func(b bool) {
-			if b {
+		dialogAdd := dialog.NewForm("Add Allocation", "Add", "Cancel", formItems, func(ok bool) {
+			if ok {
 				fromIncome := models.GetIncomeByName(incomes, entryFromIncomeID.Selected)
 
 				toExpense := models.GetExpenseByName(expenses, entryToExpenseID.Selected)
@@ -197,6 +202,8 @@ func CreateAddButtons(
 				store.GetAll(repo, incomes)
 				allocationList.Refresh()
 				incomeList.Refresh()
+				incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+				incomeTotalLabel.Refresh()
 			}
 		}, *myWindow)
 

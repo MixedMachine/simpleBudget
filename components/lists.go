@@ -9,6 +9,7 @@ import (
 	"github.com/mixedmachine/simple-budget-app/store"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
@@ -18,7 +19,7 @@ import (
 
 func CreateListComponents(
 	myWindow *fyne.Window,
-	repo *(store.SqlDB),
+	repo *(store.SqlDB), incomeTotalLabel, expenseTotalLabel *canvas.Text,
 	incomes *[]models.Income, expenses *[]models.Expense, allocations *[]models.Allocation,
 ) map[string]*(widget.List) {
 	var err error
@@ -78,8 +79,8 @@ func CreateListComponents(
 
 				incomeFormItems := []*widget.FormItem{incomeFormName, incomeFormAmount, incomeFormDate}
 
-				dialogBox := dialog.NewForm("Edit Income", "Save", "Cancel", incomeFormItems, func(b bool) {
-					if b {
+				dialogBox := dialog.NewForm("Edit Income", "Save", "Cancel", incomeFormItems, func(ok bool) {
+					if ok {
 						amount, err := strconv.ParseFloat(incomeEntryAmount.Text, 64)
 						if err != nil {
 							log.Fatal(err)
@@ -106,6 +107,8 @@ func CreateListComponents(
 						}
 					}
 					incomeList.Refresh()
+					incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+					incomeTotalLabel.Refresh()
 				}, *myWindow)
 
 				incomeEntryName.SetText((*incomes)[i].Name)
@@ -122,8 +125,8 @@ func CreateListComponents(
 				dialogBox := dialog.NewConfirm(
 					"Delete Income",
 					"Do you wish to delete this income?",
-					func(b bool) {
-						if b {
+					func(ok bool) {
+						if ok {
 							if err := store.Delete(repo, incomeID, &models.Income{}); err != nil {
 								log.Fatal(err)
 							}
@@ -132,6 +135,8 @@ func CreateListComponents(
 							}
 						}
 						incomeList.Refresh()
+						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Refresh()
 					}, *myWindow,
 				)
 
@@ -200,8 +205,8 @@ func CreateListComponents(
 
 				expensesFormItems := []*widget.FormItem{expenseFormName, expenseFormAmount, expenseFormDate}
 
-				dialogBox := dialog.NewForm("Edit Expense", "Save", "Cancel", expensesFormItems, func(b bool) {
-					if b {
+				dialogBox := dialog.NewForm("Edit Expense", "Save", "Cancel", expensesFormItems, func(ok bool) {
+					if ok {
 						amount, err := strconv.ParseFloat(expenseEntryAmount.Text, 64)
 						if err != nil {
 							log.Fatal(err)
@@ -227,6 +232,8 @@ func CreateListComponents(
 						}
 					}
 					expenseList.Refresh()
+					expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+					expenseTotalLabel.Refresh()
 				}, *myWindow)
 
 				expenseEntryName.SetText((*expenses)[i].Name)
@@ -244,8 +251,8 @@ func CreateListComponents(
 				dialogBox := dialog.NewConfirm(
 					"Delete Expense",
 					"Do you wish to delete this expense?",
-					func(b bool) {
-						if b {
+					func(ok bool) {
+						if ok {
 							if err := store.Delete(repo, expenseID, &models.Expense{}); err != nil {
 								log.Fatal(err)
 							}
@@ -254,6 +261,8 @@ func CreateListComponents(
 							}
 						}
 						expenseList.Refresh()
+						expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+						expenseTotalLabel.Refresh()
 					}, *myWindow,
 				)
 
@@ -313,8 +322,8 @@ func CreateListComponents(
 					allocationFormAmount,
 				}
 
-				dialogBox := dialog.NewForm("Edit Allocation", "Save", "Cancel", allocationFormItems, func(b bool) {
-					if b {
+				dialogBox := dialog.NewForm("Edit Allocation", "Save", "Cancel", allocationFormItems, func(ok bool) {
+					if ok {
 						fromIncome := models.GetIncomeByName(incomes, allocationEntryFromIncomeID.Text)
 						toExpense := models.GetExpenseByName(expenses, allocationEntryToExpenseID.Text)
 						amount, err := strconv.ParseFloat(allocationEntryAmount.Text, 64)
@@ -345,7 +354,8 @@ func CreateListComponents(
 						store.GetAll(repo, incomes)
 						allocationList.Refresh()
 						incomeList.Refresh()
-
+						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Refresh()
 					}
 					allocationList.Refresh()
 				}, *myWindow)
@@ -362,8 +372,8 @@ func CreateListComponents(
 				dialogBox := dialog.NewConfirm(
 					"Delete Allocation",
 					"Do you wish to delete this allocation?",
-					func(b bool) {
-						if b {
+					func(ok bool) {
+						if ok {
 							fromIncome := models.GetIncomeByID(incomes, (*allocations)[i].FromIncomeID)
 							toExpense := models.GetExpenseByID(expenses, (*allocations)[i].ToExpenseID)
 
@@ -384,6 +394,8 @@ func CreateListComponents(
 						}
 						allocationList.Refresh()
 						incomeList.Refresh()
+						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Refresh()
 					}, *myWindow,
 				)
 
