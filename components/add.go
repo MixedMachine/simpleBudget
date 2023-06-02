@@ -150,22 +150,70 @@ func CreateAddButtons(
 
 	addAllocation := widget.NewButton("Add Allocation", func() {
 
-		entryFromIncomeID := widget.NewSelect(models.GetIncomeNames(incomes), func(s string) {})
+		entryAmount := widget.NewEntry()
+		amountForm := widget.NewFormItem("Amount", entryAmount)
+		entryFromIncomeID := widget.NewSelect(models.GetIncomeNames(incomes), func(incomeName string) {
+			if incomeName != "" {
+				hint := ""
+				incomeID := models.GetIncomeByName(incomes, incomeName).ID
+
+				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
+					amt = 0.0
+				}
+				hint += "Avail: $" + strconv.FormatFloat(store.GetSumWhere(
+					repo, incomes, "amount", "id = ?", incomeID,
+				)-store.GetSumWhere(
+					repo, allocations, "amount", "from_income_id = ?", incomeID,
+				)-amt, 'f', 2, 64)
+				amountForm.HintText = hint
+				amountForm.Widget.Refresh()
+			}
+		})
+		fromIncomeIDForm := widget.NewFormItem("From Income ID", entryFromIncomeID)
 		entryToExpenseID := widget.NewSelect(models.GetExpenseNames(expenses), func(s string) {
 			filterDate := models.GetExpenseByName(expenses, s).Date
 			filterBy := func(inc models.Income) bool { return utils.CompareDates(inc.Date, filterDate) == -1 }
 			entryFromIncomeID.Options = models.GetIncomeNames(models.Filter(incomes, filterBy))
 		})
-		entryAmount := widget.NewEntry()
-
-		fromIncomeIDForm := widget.NewFormItem("From Income ID", entryFromIncomeID)
 		toExpenseIDForm := widget.NewFormItem("To Expense ID", entryToExpenseID)
-		amountForm := widget.NewFormItem("Amount", entryAmount)
+
+		entryAmount.OnChanged = func(amount string) {
+			if entryFromIncomeID.Selected != "" {
+				hint := ""
+				amt, err := strconv.ParseFloat(amount, 64)
+				if err != nil {
+					amt = 0.0
+				}
+
+				incomeID := models.GetIncomeByName(incomes, entryFromIncomeID.Selected).ID
+				hint += "Avail: $" + strconv.FormatFloat(store.GetSumWhere(
+					repo, incomes, "amount", "id = ?", incomeID,
+				)-store.GetSumWhere(
+					repo, allocations, "amount", "from_income_id = ?", incomeID,
+				)-amt, 'f', 2, 64)
+				amountForm.HintText = hint
+				amountForm.Widget.Refresh()
+			}
+		}
 
 		entryAmount.Validator = func(s string) error {
 			_, err := strconv.ParseFloat(s, 64)
 			if err != nil {
 				return errors.New("invalid amount")
+			}
+			if entryFromIncomeID.Selected != "" {
+				incomeID := models.GetIncomeByName(incomes, entryFromIncomeID.Selected).ID
+				chosenIcomeAmount := store.GetSumWhere(repo, incomes, "amount", "id = ?", incomeID)
+				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
+					log.Error(err)
+				}
+				if chosenIcomeAmount < amt {
+					log.Infof("chosenIcomeAmount: %f", chosenIcomeAmount)
+					log.Infof("amt: %f", amt)
+					return errors.New("amount is greater than income amount")
+				}
 			}
 			return nil
 		}
