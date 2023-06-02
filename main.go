@@ -35,6 +35,9 @@ func main() {
 	if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
 		myWindow.SetIcon(resourceIconPng)
 	}
+	if resourceIconPng, err := fyne.LoadResourceFromPath("icon.png"); err == nil {
+		myWindow.SetIcon(resourceIconPng)
+	}
 
 	dbLocation = filepath.Join(myApp.Storage().RootURI().Path(), store.SQLITE_FILE)
 

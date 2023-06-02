@@ -70,7 +70,7 @@ pkg.mobile.all: pkg.mobile.and pkg.mobile.ios
 pkg.desktop.win: pkg.init
 	@echo "Packaging for windows..."
 	@mkdir -p bin/desktop
-	fyne package --exe bin/desktop --os windows --icon $(icon)
+	fyne package --release --appID $(appID) --exe bin/desktop --os windows --icon $(icon)
 
 pkg.desktop.lin: pkg.init
 	@echo "Packaging for linux..."
