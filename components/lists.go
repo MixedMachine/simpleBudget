@@ -64,7 +64,7 @@ func CreateListComponents(
 			incomeID := (*incomes)[i].ID
 
 			nameLabel.SetText((*incomes)[i].Name)
-			allocatedLabel.SetText(fmt.Sprintf("allocated: $ %.2f", (*incomes)[i].Allocated))
+			allocatedLabel.SetText(fmt.Sprintf("allocated: $ %.2f", store.GetSumWhere(repo, allocations, "amount", "from_income_id = ?", incomeID)))
 			amountLabel.SetText(fmt.Sprintf("total: $ %.2f", (*incomes)[i].Amount))
 			dateLabel.SetText((*incomes)[i].Date.Format("2006-01-02"))
 
@@ -315,6 +315,12 @@ func CreateListComponents(
 				allocationFormFromIncomeID := widget.NewFormItem("From", allocationEntryFromIncomeID)
 				allocationFormToExpenseID := widget.NewFormItem("To", allocationEntryToExpenseID)
 				allocationFormAmount := widget.NewFormItem("Amount", allocationEntryAmount)
+
+				incomeID, err := strconv.ParseUint(allocationEntryFromIncomeID.Text, 10, 64)
+				if err != nil {
+					log.Error(err)
+				}
+				allocationFormAmount.HintText = fmt.Sprintf("Max: $%.2f", store.GetSumWhere(repo, incomes, "amount", "id = ?", incomeID))
 
 				allocationFormItems := []*widget.FormItem{
 					allocationFormFromIncomeID,
