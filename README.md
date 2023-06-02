@@ -54,7 +54,7 @@ If you do not have make installed, you can run `go mod download` to install the 
 
 ## Bugs
 - [ ] The application uses local storage to save the budget items
-- [ ] Allocations of income do no delete when the income is deleted
+- [ ] Allocations of income do not delete when the income is deleted
 - [ ] On mobile, backspace double deletes
 - [ ] In light mode, the headers are not visible
 - [x] Crashes when the user tries to update an expense name
