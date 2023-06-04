@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"path/filepath"
+	"strconv"
 
 	. "github.com/mixedmachine/simple-budget-app/components"
 	. "github.com/mixedmachine/simple-budget-app/models"
@@ -13,7 +14,9 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 )
@@ -41,38 +44,54 @@ func main() {
 
 	dbLocation = filepath.Join(myApp.Storage().RootURI().Path(), store.SQLITE_FILE)
 
-	income := NewIncomes()
-	expense := NewExpenses()
-	allocation := NewAllocations()
+	incomes := NewIncomes()
+	expenses := NewExpenses()
+	allocations := NewAllocations()
 
 	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation))
 
-	err = store.GetAll(repo, income)
+	err = store.GetAll(repo, incomes)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		errBox := dialog.NewError(err, myWindow)
+		errBox.Show()
+
 	}
-	err = store.GetAll(repo, expense)
+	err = store.GetAll(repo, expenses)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		errBox := dialog.NewError(err, myWindow)
+		errBox.Show()
+
 	}
-	err = store.GetAll(repo, allocation)
+	err = store.GetAll(repo, allocations)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		errBox := dialog.NewError(err, myWindow)
+		errBox.Show()
+
 	}
 
-	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, income, "amount")), color.White)
-	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, expense, "amount")), color.White)
+	incomeTotalLabel := canvas.NewText("Total: $"+
+		strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)+
+		" \t Allocated: $"+
+		strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64),
+		theme.ForegroundColor())
+	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+		store.GetSum(repo, Expense{}, "amount"),
+		store.GetSum(repo, Expense{}, "amount")-store.GetSum(repo, Allocation{}, "amount")),
+		theme.ForegroundColor())
 
 	budget := CreateListComponents(
 		&myWindow,
 		repo, incomeTotalLabel, expenseTotalLabel,
-		income, expense, allocation,
+		incomes, expenses, allocations,
 	)
 
 	addButtons := CreateAddButtons(
 		&myWindow,
 		repo, incomeTotalLabel, expenseTotalLabel,
-		income, expense, allocation,
+		incomes, expenses, allocations,
 		budget,
 	)
 
@@ -106,7 +125,12 @@ func main() {
 		expenseTotalLabel,
 	)
 
-	transactions := container.New(layout.NewGridLayout(1),
+	cols := 2
+	if fyne.CurrentDevice().IsMobile() {
+		cols = 1
+	}
+
+	transactions := container.New(layout.NewGridLayout(cols),
 		container.NewBorder(
 			incomeHeader,
 			nil,

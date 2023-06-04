@@ -2,6 +2,7 @@ package components
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -58,18 +59,22 @@ func CreateAddButtons(
 			if ok {
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
 				}
 				date, err := time.Parse("2006-01-02", entryDate.Text)
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
+
 				}
 
 				i := models.Income{
-					Name:      entryName.Text,
-					Amount:    amount,
-					Date:      date,
-					Allocated: 0,
+					Name:   entryName.Text,
+					Amount: amount,
+					Date:   date,
 				}
 
 				if err := store.Create(repo, &i); err != nil {
@@ -77,7 +82,10 @@ func CreateAddButtons(
 				}
 				store.GetAll(repo, incomes)
 				incomeList.Refresh()
-				incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+				incomeTotalLabel.Text = "Total: $" +
+					strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+					" \t Allocated: $" +
+					strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 				incomeTotalLabel.Refresh()
 			}
 		}, *myWindow)
@@ -119,11 +127,15 @@ func CreateAddButtons(
 			if ok {
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
 				}
 				date, err := time.Parse("2006-01-02", entryDate.Text)
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
 				}
 
 				e := models.Expense{
@@ -137,7 +149,10 @@ func CreateAddButtons(
 				}
 				store.GetAll(repo, expenses)
 				expenseList.Refresh()
-				expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+				expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+					store.GetSum(repo, models.Expense{}, "amount"),
+					store.GetSum(repo, models.Expense{}, "amount")-
+						store.GetSum(repo, models.Allocation{}, "amount"))
 				expenseTotalLabel.Refresh()
 			}
 		}, *myWindow)
@@ -208,6 +223,8 @@ func CreateAddButtons(
 				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
 					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
 				}
 				if chosenIcomeAmount < amt {
 					log.Infof("chosenIcomeAmount: %f", chosenIcomeAmount)
@@ -228,10 +245,12 @@ func CreateAddButtons(
 
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
-					log.Fatal(err)
+					log.Error(err)
+					errBox := dialog.NewError(err, *myWindow)
+					errBox.Show()
 				}
 
-				a := models.AllocatFunds(
+				a := models.AllocateFunds(
 					&fromIncome,
 					&toExpense,
 					amount,
@@ -250,8 +269,16 @@ func CreateAddButtons(
 				store.GetAll(repo, incomes)
 				allocationList.Refresh()
 				incomeList.Refresh()
-				incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+				incomeTotalLabel.Text = "Total: $" +
+					strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+					" \t Allocated: $" +
+					strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 				incomeTotalLabel.Refresh()
+				expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+					store.GetSum(repo, models.Expense{}, "amount"),
+					store.GetSum(repo, models.Expense{}, "amount")-
+						store.GetSum(repo, models.Allocation{}, "amount"))
+				expenseTotalLabel.Refresh()
 			}
 		}, *myWindow)
 
