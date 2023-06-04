@@ -60,13 +60,27 @@ func GetExpenseNames(expenses *[]Expense) []string {
 	return names
 }
 
-func AllocatFunds(income *Income, expense *Expense, prevAmount, amount float64) *Allocation {
-	allocated := amount
+func ReallocateFunds(income *Income, expense *Expense, allocatedToIncome, prevAmount, amount float64) *Allocation {
 	maxAmount := income.Amount
 
-	allocated += prevAmount
+	newAmount := allocatedToIncome - prevAmount + amount
 
-	if allocated > maxAmount {
+	if newAmount > maxAmount {
+		log.Error("Cannot allocate more than income amount")
+		return nil
+	}
+
+	return &Allocation{
+		Amount:       amount,
+		FromIncomeID: income.ID,
+		ToExpenseID:  expense.ID,
+	}
+}
+
+func AllocateFunds(income *Income, expense *Expense, amount float64) *Allocation {
+	maxAmount := income.Amount
+
+	if amount > maxAmount {
 		log.Error("Cannot allocate more than income amount")
 		return nil
 	}

@@ -11,10 +11,10 @@ type User struct {
 }
 
 type Income struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement"`
-	Name      string    `gorm:"unique;not null"`
-	Amount    float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
-	Date      time.Time `gorm:"type:date;not null"`
+	ID     uint      `gorm:"primaryKey;autoIncrement"`
+	Name   string    `gorm:"unique;not null"`
+	Amount float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
+	Date   time.Time `gorm:"type:date;not null"`
 }
 
 type Expense struct {
