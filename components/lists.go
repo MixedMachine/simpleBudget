@@ -29,7 +29,7 @@ func CreateListComponents(
 	var allocationList *widget.List
 
 	incomeList = widget.NewList(
-		func() int { return len(*incomes) + 1 },
+		func() int { return len(*incomes) },
 		func() fyne.CanvasObject {
 			var cols int = 2
 			models.SortIncomeByDate(incomes)
@@ -153,11 +153,12 @@ func CreateListComponents(
 				dialogBox.Show()
 
 			}
+
 		},
 	)
 
 	expenseList = widget.NewList(
-		func() int { return len(*expenses) + 1 },
+		func() int { return len(*expenses) },
 		func() fyne.CanvasObject {
 			var cols int = 2
 			models.SortExpenseByDate(expenses)
@@ -283,11 +284,12 @@ func CreateListComponents(
 				dialogBox.Show()
 
 			}
+
 		},
 	)
 
 	allocationList = widget.NewList(
-		func() int { return len(*allocations) + 1 },
+		func() int { return len(*allocations) },
 		func() fyne.CanvasObject {
 			fromLabel := widget.NewLabel("FromIncomeID")
 			toLabel := widget.NewLabel("ToExpenseID")
