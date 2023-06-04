@@ -69,7 +69,6 @@ func CreateAddButtons(
 					Name:      entryName.Text,
 					Amount:    amount,
 					Date:      date,
-					Allocated: 0,
 				}
 
 				if err := store.Create(repo, &i); err != nil {
@@ -234,6 +233,13 @@ func CreateAddButtons(
 				a := models.AllocatFunds(
 					&fromIncome,
 					&toExpense,
+					store.GetSumWhere(
+						repo, 
+						allocations, 
+						"amount", 
+						"from_income_id = ?", 
+						fromIncome.ID,
+					),
 					amount,
 				)
 

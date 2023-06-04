@@ -337,10 +337,16 @@ func CreateListComponents(
 							log.Fatal(err)
 						}
 
-						a := models.ReallocatFunds(
+						a := models.AllocatFunds(
 							&fromIncome,
 							&toExpense,
-							(*allocations)[i].Amount,
+							store.GetSumWhere(
+								repo,
+								allocations,
+								"amount",
+								"from_income_id = ?",
+								fromIncome.ID,
+							),
 							amount,
 						)
 
@@ -380,23 +386,10 @@ func CreateListComponents(
 					"Do you wish to delete this allocation?",
 					func(ok bool) {
 						if ok {
-							fromIncome := models.GetIncomeByID(incomes, (*allocations)[i].FromIncomeID)
-							toExpense := models.GetExpenseByID(expenses, (*allocations)[i].ToExpenseID)
-
-							models.DeallocatFunds(
-								&fromIncome,
-								&toExpense,
-								(*allocations)[i].Amount,
-							)
-
-							if err := store.Update(repo, fromIncome.ID, fromIncome); err != nil {
-								log.Fatal(err)
-							}
 							if err := store.Delete(repo, allocationID, models.NewAllocations()); err != nil {
 								log.Fatal(err)
 							}
 							store.GetAll(repo, allocations)
-							store.GetAll(repo, incomes)
 						}
 						allocationList.Refresh()
 						incomeList.Refresh()

@@ -60,8 +60,7 @@ func GetExpenseNames(expenses *[]Expense) []string {
 	return names
 }
 
-func AllocatFunds(income *Income, expense *Expense, amount float64) *Allocation {
-	prevAmount := income.Allocated
+func AllocatFunds(income *Income, expense *Expense, prevAmount, amount float64) *Allocation {
 	allocated := amount
 	maxAmount := income.Amount
 
@@ -72,34 +71,11 @@ func AllocatFunds(income *Income, expense *Expense, amount float64) *Allocation 
 		return nil
 	}
 
-	income.Allocated = allocated
-
 	return &Allocation{
 		Amount:       amount,
 		FromIncomeID: income.ID,
 		ToExpenseID:  expense.ID,
 	}
-}
-
-func DeallocatFunds(income *Income, expense *Expense, amount float64) {
-	prevAmount := income.Allocated
-
-	amount -= prevAmount
-
-	if amount < 0 {
-		log.Error("Cannot deallocate more than allocated")
-	}
-
-	income.Allocated = amount
-}
-
-func ReallocatFunds(income *Income, expense *Expense, originalAmount, newAmount float64) *Allocation {
-	var allocation *Allocation
-
-	DeallocatFunds(income, expense, originalAmount)
-	allocation = AllocatFunds(income, expense, newAmount)
-
-	return allocation
 }
 
 func Filter[T transaction](transactions *[]T, filterFunc func(t T) bool) *[]T {
@@ -110,10 +86,6 @@ func Filter[T transaction](transactions *[]T, filterFunc func(t T) bool) *[]T {
 		}
 	}
 	return &filtered
-}
-
-func (i *Income) AmountLeftToAllocate() float64 {
-	return i.Amount - i.Allocated
 }
 
 func SortIncomeByDate(income *[]Income) {
