@@ -336,12 +336,19 @@ func CreateListComponents(
 					store.GetSumWhere(repo, allocations, "amount", "to_expense_id = ?", (*allocations)[i].ToExpenseID)
 				recommededAmount := (*allocations)[i].Amount + utils.MinAmount(availAmount, neededAmount)
 
-				allocationFormAmount.HintText = fmt.Sprintf(
-					"Available: $%.2f \t Needed: $%.2f \n Recommended: $%.2f",
-					availAmount,
-					neededAmount,
-					recommededAmount,
-				)
+				if fyne.CurrentDevice().IsMobile() {
+					allocationFormAmount.HintText = fmt.Sprintf(
+						"Recommended: $%.2f",
+						recommededAmount,
+					)
+				} else {
+					allocationFormAmount.HintText = fmt.Sprintf(
+						"Available: $%.2f \t Needed: $%.2f \n Recommended: $%.2f",
+						availAmount,
+						neededAmount,
+						recommededAmount,
+					)
+				}
 
 				allocationFormItems := []*widget.FormItem{
 					allocationFormFromIncomeID,

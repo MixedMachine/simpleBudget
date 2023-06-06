@@ -47,6 +47,7 @@ func InitializeSQL(sqlType SQLType, dbLocation string) *gorm.DB {
 	DB.AutoMigrate(&models.Income{})
 	DB.AutoMigrate(&models.Expense{})
 	DB.AutoMigrate(&models.Allocation{})
+	DB.AutoMigrate(&models.Notes{})
 
 	return DB
 }
