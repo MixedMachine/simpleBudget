@@ -3,11 +3,7 @@
 *mixedmachine.dev@gmail.com*
 
 ## Description
-This is a simple budget application that allows the user to add expenses and deposits to their budget then allocate the funds to track where the income is going. This application uses a Mongo database, . The application is downloadable and uses Mongo for the database. As of now, you will need to provide your own Mongo database to use this application. Add the mongo uri in a .env file in the same directory as the main.go file. The .env file should look like this:
-
-```
-MONGO_URI=<your mongo uri>
-```
+This is a simple budget application that allows the user to add expenses and deposits to their budget then allocate the funds to track where the income is going. The application is downloadable and uses sqlite for the database. In the future, I would like to add a login feature and allow the user to save their budget to a remote database to access the same information on different devices. I would also like to add a feature to allow the user to export and import snapshots of different months. This would allow the user to have a budget for each month and be able to look at previous months. 
 
 
 ## Table of Contents
@@ -61,6 +57,7 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [x] Text hint on allocations edit is wrong
 - [x] Allocation doesn't need to do anything to income.Allocation
 - [x] income.Allocation should be removed since switching to sql database for getting income allocaitons
+- [ ] Icon doesn't show up with installer
 
 \* Add more bugs in github issues as they're found
 
