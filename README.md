@@ -3,7 +3,7 @@
 *mixedmachine.dev@gmail.com*
 
 ## Description
-This is a simple budget application that allows the user to add expenses and deposits to their budget then allocate the funds to track where the income is going. The application is downloadable and uses sqlite for the database. In the future, I would like to add a login feature and allow the user to save their budget to a remote database to access the same information on different devices. I would also like to add a feature to allow the user to export and import snapshots of different months. This would allow the user to have a budget for each month and be able to look at previous months. 
+This is a simple budget application that allows the user to add expenses and deposits to their budget then allocate the funds to track where the income is going. The application is downloadable and uses sqlite for the database. In the future, I would like to add a login feature and allow the user to save their budget to a remote database to access the same information on different devices. This will include adding users to the current models. I would also like to add a feature to allow the user to export and import snapshots of different months. This would allow the user to have a budget for each month and be able to look at previous months. I also need to figure out how to highlight expenses based on what is allocated.
 
 
 ## Table of Contents
@@ -46,7 +46,8 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [x] enable the user to add notes
 - [ ] enable a switch to save locally or to remote database (paid feature or bring your own database)
 - [ ] Add login (paid feature)
-
+- [ ] Search on expenses & allocations
+- [ ] Add sort by button on expenses & allocations
 
 ## Bugs
 - [ ] The application uses local storage to save the budget items
