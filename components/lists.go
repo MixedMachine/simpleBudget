@@ -7,6 +7,7 @@ import (
 
 	"github.com/mixedmachine/simple-budget-app/models"
 	"github.com/mixedmachine/simple-budget-app/store"
+	"github.com/mixedmachine/simple-budget-app/utils"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -30,17 +31,12 @@ func CreateListComponents(
 	incomeList = widget.NewList(
 		func() int { return len(*incomes) },
 		func() fyne.CanvasObject {
-			var cols int
+			var cols int = 2
 			models.SortIncomeByDate(incomes)
 			nameLabel := widget.NewLabel("Name")
 			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
-			if fyne.CurrentDevice().IsMobile() {
-				cols = 2
-			} else {
-				cols = 4
-			}
 			incomeContainer := container.NewGridWithColumns(cols, dateLabel, nameLabel, allocatedLabel, amountLabel)
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
@@ -83,7 +79,9 @@ func CreateListComponents(
 					if ok {
 						amount, err := strconv.ParseFloat(incomeEntryAmount.Text, 64)
 						if err != nil {
-							log.Fatal(err)
+							log.Error(err)
+							errBox := dialog.NewError(err, *myWindow)
+							errBox.Show()
 						}
 						date, error := time.Parse("2006-01-02", incomeEntryDate.Text)
 
@@ -107,7 +105,10 @@ func CreateListComponents(
 						}
 					}
 					incomeList.Refresh()
-					incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+					incomeTotalLabel.Text = "Total: $" +
+						strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+						" \t Allocated: $" +
+						strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 					incomeTotalLabel.Refresh()
 				}, *myWindow)
 
@@ -135,8 +136,16 @@ func CreateListComponents(
 							}
 						}
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Text = "Total: $" +
+							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+							" \t Allocated: $" +
+							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 						incomeTotalLabel.Refresh()
+						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+							store.GetSum(repo, models.Expense{}, "amount"),
+							store.GetSum(repo, models.Expense{}, "amount")-
+								store.GetSum(repo, models.Allocation{}, "amount"))
+						expenseTotalLabel.Refresh()
 					}, *myWindow,
 				)
 
@@ -151,17 +160,12 @@ func CreateListComponents(
 	expenseList = widget.NewList(
 		func() int { return len(*expenses) },
 		func() fyne.CanvasObject {
-			var cols int
+			var cols int = 2
 			models.SortExpenseByDate(expenses)
 			nameLabel := widget.NewLabel("Name")
 			allocatedLabel := widget.NewLabel("Allocated")
 			amountLabel := widget.NewLabel("Amount")
 			dateLabel := widget.NewLabel("Date")
-			if fyne.CurrentDevice().IsMobile() {
-				cols = 2
-			} else {
-				cols = 4
-			}
 			expenseContainer := container.NewGridWithColumns(cols, dateLabel, nameLabel, allocatedLabel, amountLabel)
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
@@ -209,12 +213,16 @@ func CreateListComponents(
 					if ok {
 						amount, err := strconv.ParseFloat(expenseEntryAmount.Text, 64)
 						if err != nil {
-							log.Fatal(err)
+							log.Error(err)
+							errBox := dialog.NewError(err, *myWindow)
+							errBox.Show()
 						}
 
 						date, err := time.Parse("2006-01-02", expenseEntryDate.Text)
 						if err != nil {
-							log.Fatal(err)
+							log.Error(err)
+							errBox := dialog.NewError(err, *myWindow)
+							errBox.Show()
 						}
 
 						expense := models.Expense{
@@ -232,12 +240,15 @@ func CreateListComponents(
 						}
 					}
 					expenseList.Refresh()
-					expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+					expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+						store.GetSum(repo, models.Expense{}, "amount"),
+						store.GetSum(repo, models.Expense{}, "amount")-
+							store.GetSum(repo, models.Allocation{}, "amount"))
 					expenseTotalLabel.Refresh()
 				}, *myWindow)
 
 				expenseEntryName.SetText((*expenses)[i].Name)
-				expenseEntryAmount.SetText(fmt.Sprintf("$ %.2f", (*expenses)[i].Amount))
+				expenseEntryAmount.SetText(fmt.Sprintf("%.2f", (*expenses)[i].Amount))
 				expenseEntryDate.SetText((*expenses)[i].Date.Format("2006-01-02"))
 
 				dialogBox.Resize(fyne.NewSize(500, 300))
@@ -261,7 +272,10 @@ func CreateListComponents(
 							}
 						}
 						expenseList.Refresh()
-						expenseTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, expenses, "amount"), 'f', 2, 64)
+						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+							store.GetSum(repo, models.Expense{}, "amount"),
+							store.GetSum(repo, models.Expense{}, "amount")-
+								store.GetSum(repo, models.Allocation{}, "amount"))
 						expenseTotalLabel.Refresh()
 					}, *myWindow,
 				)
@@ -316,11 +330,25 @@ func CreateListComponents(
 				allocationFormToExpenseID := widget.NewFormItem("To", allocationEntryToExpenseID)
 				allocationFormAmount := widget.NewFormItem("Amount", allocationEntryAmount)
 
-				incomeID, err := strconv.ParseUint(allocationEntryFromIncomeID.Text, 10, 64)
-				if err != nil {
-					log.Error(err)
+				availAmount := models.GetIncomeByID(incomes, (*allocations)[i].FromIncomeID).Amount -
+					store.GetSumWhere(repo, allocations, "amount", "from_income_id = ?", (*allocations)[i].FromIncomeID)
+				neededAmount := models.GetExpenseByID(expenses, (*allocations)[i].ToExpenseID).Amount -
+					store.GetSumWhere(repo, allocations, "amount", "to_expense_id = ?", (*allocations)[i].ToExpenseID)
+				recommededAmount := (*allocations)[i].Amount + utils.MinAmount(availAmount, neededAmount)
+
+				if fyne.CurrentDevice().IsMobile() {
+					allocationFormAmount.HintText = fmt.Sprintf(
+						"Recommended: $%.2f",
+						recommededAmount,
+					)
+				} else {
+					allocationFormAmount.HintText = fmt.Sprintf(
+						"Available: $%.2f \t Needed: $%.2f \n Recommended: $%.2f",
+						availAmount,
+						neededAmount,
+						recommededAmount,
+					)
 				}
-				allocationFormAmount.HintText = fmt.Sprintf("Max: $%.2f", store.GetSumWhere(repo, incomes, "amount", "id = ?", incomeID))
 
 				allocationFormItems := []*widget.FormItem{
 					allocationFormFromIncomeID,
@@ -334,12 +362,21 @@ func CreateListComponents(
 						toExpense := models.GetExpenseByName(expenses, allocationEntryToExpenseID.Text)
 						amount, err := strconv.ParseFloat(allocationEntryAmount.Text, 64)
 						if err != nil {
-							log.Fatal(err)
+							log.Error(err)
+							errBox := dialog.NewError(err, *myWindow)
+							errBox.Show()
 						}
 
-						a := models.ReallocatFunds(
+						a := models.ReallocateFunds(
 							&fromIncome,
 							&toExpense,
+							store.GetSumWhere(
+								repo,
+								allocations,
+								"amount",
+								"from_income_id = ?",
+								fromIncome.ID,
+							),
 							(*allocations)[i].Amount,
 							amount,
 						)
@@ -360,8 +397,16 @@ func CreateListComponents(
 						store.GetAll(repo, incomes)
 						allocationList.Refresh()
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Text = "Total: $" +
+							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+							" \t Allocated: $" +
+							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 						incomeTotalLabel.Refresh()
+						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+							store.GetSum(repo, models.Expense{}, "amount"),
+							store.GetSum(repo, models.Expense{}, "amount")-
+								store.GetSum(repo, models.Allocation{}, "amount"))
+						expenseTotalLabel.Refresh()
 					}
 					allocationList.Refresh()
 				}, *myWindow)
@@ -380,28 +425,23 @@ func CreateListComponents(
 					"Do you wish to delete this allocation?",
 					func(ok bool) {
 						if ok {
-							fromIncome := models.GetIncomeByID(incomes, (*allocations)[i].FromIncomeID)
-							toExpense := models.GetExpenseByID(expenses, (*allocations)[i].ToExpenseID)
-
-							models.DeallocatFunds(
-								&fromIncome,
-								&toExpense,
-								(*allocations)[i].Amount,
-							)
-
-							if err := store.Update(repo, fromIncome.ID, fromIncome); err != nil {
-								log.Fatal(err)
-							}
 							if err := store.Delete(repo, allocationID, models.NewAllocations()); err != nil {
 								log.Fatal(err)
 							}
 							store.GetAll(repo, allocations)
-							store.GetAll(repo, incomes)
 						}
 						allocationList.Refresh()
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" + strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)
+						incomeTotalLabel.Text = "Total: $" +
+							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
+							" \t Allocated: $" +
+							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
 						incomeTotalLabel.Refresh()
+						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+							store.GetSum(repo, models.Expense{}, "amount"),
+							store.GetSum(repo, models.Expense{}, "amount")-
+								store.GetSum(repo, models.Allocation{}, "amount"))
+						expenseTotalLabel.Refresh()
 					}, *myWindow,
 				)
 

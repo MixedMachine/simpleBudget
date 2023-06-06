@@ -11,11 +11,10 @@ type User struct {
 }
 
 type Income struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement"`
-	Name      string    `gorm:"unique;not null"`
-	Amount    float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
-	Date      time.Time `gorm:"type:date;not null"`
-	Allocated float64   `gorm:"ignore"`
+	ID     uint      `gorm:"primaryKey;autoIncrement"`
+	Name   string    `gorm:"unique;not null"`
+	Amount float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
+	Date   time.Time `gorm:"type:date;not null"`
 }
 
 type Expense struct {
@@ -32,6 +31,11 @@ type Allocation struct {
 	ToExpenseID  uint    `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
 }
 
+type Notes struct {
+	ID      uint   `gorm:"primaryKey;autoIncrement"`
+	Content string `gorm:"not null"`
+}
+
 func NewIncomes() *[]Income {
 	return &[]Income{}
 }
@@ -42,4 +46,8 @@ func NewExpenses() *[]Expense {
 
 func NewAllocations() *[]Allocation {
 	return &[]Allocation{}
+}
+
+func NewNotes() *[]Notes {
+	return &[]Notes{}
 }
