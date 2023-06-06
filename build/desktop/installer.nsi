@@ -1,5 +1,5 @@
 !define APP_NAME "simple-budget-app"
-!define APP_VERSION "1.0.0"
+!define APP_VERSION "0.3.0"
 !define APP_OUT_DIR "SimpleBudgetApp"
 
 ; Set the name of the installer and the output directory

@@ -37,18 +37,18 @@ If you do not have make installed, you can run `go mod download` to install the 
     - [ ] Red if nothing allocated
     - [ ] Yellow if partially allocated
     - [ ] Green if fully allocated
-- [ ] Allocation of each Income
-- [ ] Auto-allocation based on available income and date of expenses
+- [x] Allocation of each Income
+- [x] Auto-allocation based on available income and date of expenses
 - [ ] Button to convert all dates of budget to next month
 - [ ] Button to convert all dates of budget to previous month
 - [ ] Button to convert all dates of budget to current month
-    - [ ] With these feature I do not want to save each month's budget, but rather have the user be able to change the month they are looking at for convenience
+    - [ ] With these features I do not want to save each month's budget, but rather have the user be able to change the month they are looking at for convenience
     - [ ] Due to the above, there should be an export button to "snapshot" the current budget
 - [ ] Add a "snapshot" button to save the current budget
 - [ ] Add a "load" button to load a saved budget
 - [ ] Add a "clear" button to clear the current budget
-- [ ] enable the user to add a notes
-- [ ] enable a switch to save locally or to remote database (paid feature)
+- [x] enable the user to add notes
+- [ ] enable a switch to save locally or to remote database (paid feature or bring your own database)
 - [ ] Add login (paid feature)
 
 
@@ -56,9 +56,9 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [ ] The application uses local storage to save the budget items
 - [ ] Allocations of income do not delete when the income is deleted
 - [ ] On mobile, backspace double deletes
-- [ ] In light mode, the headers are not visible
+- [x] In light mode, the headers are not visible
 - [x] Crashes when the user tries to update an expense name
-- [ ] Text hint on allocations edit is wrong
+- [x] Text hint on allocations edit is wrong
 - [x] Allocation doesn't need to do anything to income.Allocation
 - [x] income.Allocation should be removed since switching to sql database for getting income allocaitons
 
