@@ -31,6 +31,11 @@ type Allocation struct {
 	ToExpenseID  uint    `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
 }
 
+type Notes struct {
+	ID      uint   `gorm:"primaryKey;autoIncrement"`
+	Content string `gorm:"not null"`
+}
+
 func NewIncomes() *[]Income {
 	return &[]Income{}
 }
@@ -41,4 +46,8 @@ func NewExpenses() *[]Expense {
 
 func NewAllocations() *[]Allocation {
 	return &[]Allocation{}
+}
+
+func NewNotes() *[]Notes {
+	return &[]Notes{}
 }

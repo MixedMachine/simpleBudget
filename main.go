@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/mixedmachine/simple-budget-app/components"
 	. "github.com/mixedmachine/simple-budget-app/components"
 	. "github.com/mixedmachine/simple-budget-app/models"
 	"github.com/mixedmachine/simple-budget-app/store"
@@ -27,6 +28,11 @@ const (
 
 func init() {
 	godotenv.Load()
+	log.SetReportCaller(true)
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:     true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 }
 
 func main() {
@@ -47,6 +53,7 @@ func main() {
 	incomes := NewIncomes()
 	expenses := NewExpenses()
 	allocations := NewAllocations()
+	notes := NewNotes()
 
 	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation))
 
@@ -55,21 +62,33 @@ func main() {
 		log.Error(err)
 		errBox := dialog.NewError(err, myWindow)
 		errBox.Show()
-
 	}
 	err = store.GetAll(repo, expenses)
 	if err != nil {
 		log.Error(err)
 		errBox := dialog.NewError(err, myWindow)
 		errBox.Show()
-
 	}
 	err = store.GetAll(repo, allocations)
 	if err != nil {
 		log.Error(err)
 		errBox := dialog.NewError(err, myWindow)
 		errBox.Show()
-
+	}
+	err = store.GetAll(repo, notes)
+	if err != nil {
+		log.Error(err)
+		errBox := dialog.NewError(err, myWindow)
+		errBox.Show()
+	}
+	if len(*notes) == 0 {
+		*notes = append(*notes, Notes{Content: ""})
+		err = store.Create(repo, &(*notes)[0])
+		if err != nil {
+			log.Error(err)
+			errBox := dialog.NewError(err, myWindow)
+			errBox.Show()
+		}
 	}
 
 	incomeTotalLabel := canvas.NewText("Total: $"+
@@ -147,12 +166,21 @@ func main() {
 		),
 	)
 
+	notesTab := components.CreateNotesComponent(
+		myWindow,
+		repo,
+		notes,
+	)
+
 	centerContainer := container.NewAppTabs(
 		container.NewTabItem("Transactions",
 			transactions,
 		),
 		container.NewTabItem("Allocations",
 			budget["allocationList"],
+		),
+		container.NewTabItem("Notes",
+			notesTab,
 		),
 	)
 

@@ -1,5 +1,6 @@
-icon = ./assets/icon.png
-appID = com.mixedmachine.simplebudget
+ICON = ./assets/icon.png
+APP_ID = com.mixedmachine.simplebudget
+VERSION = 0.3.0
 
 init:
 	@echo "Initializing..."
@@ -55,13 +56,13 @@ pkg.init:
 pkg.mobile.and: pkg.init
 	@echo "Packaging for android..."
 	@mkdir -p bin/mobile
-	fyne package -os android -appID $(appID) -icon $(icon)
+	fyne package --appVersion $(VERSION) -os android -appID $(APP_ID) -icon $(ICON)
 	@mv simple_budget_app.apk bin/mobile/simple_budget_app.apk
 
 pkg.mobile.ios: pkg.init
 	@echo "Packaging for ios..."
 	@mkdir -p bin/mobile
-	fyne package -os ios -appID $(appID) -icon $(icon)
+	fyne package --appVersion $(VERSION) -os ios -appID $(APP_ID) -icon $(ICON)
 	@mv simple_budget_app.ipa bin/mobile/simple_budget_app.ipa
 
 pkg.mobile.all: pkg.mobile.and pkg.mobile.ios
@@ -70,17 +71,17 @@ pkg.mobile.all: pkg.mobile.and pkg.mobile.ios
 pkg.desktop.win: pkg.init
 	@echo "Packaging for windows..."
 	@mkdir -p bin/desktop
-	fyne package --release --appID $(appID) --exe bin/desktop --os windows --icon $(icon)
+	fyne package --appVersion $(VERSION) --appID $(APP_ID) --exe bin/desktop --os windows --icon $(ICON)
 
 pkg.desktop.lin: pkg.init
 	@echo "Packaging for linux..."
 	@mkdir -p bin/desktop
-	fyne package --exe bin/desktop --os linux --icon $(icon)
+	fyne package --appVersion $(VERSION) --exe bin/desktop --os linux --icon $(ICON)
 
 pkg.desktop.mac: pkg.init
 	@echo "Packaging for mac..."
 	@mkdir -p bin/desktop
-	fyne package --exe bin/desktop --os darwin --icon $(icon)
+	fyne package --appVersion $(VERSION) --exe bin/desktop --os darwin --icon $(ICON)
 
 pkg.desktop.all: pkg.desktop.linux pkg.desktop.mac pkg.desktop.win
 	@echo "Packaging for all desktop platforms complete."
