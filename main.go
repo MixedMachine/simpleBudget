@@ -91,10 +91,13 @@ func main() {
 		}
 	}
 
-	incomeTotalLabel := canvas.NewText("Total: $"+
-		strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64)+
-		" \t Allocated: $"+
-		strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64),
+	incomeTotal := store.GetSum(repo, incomes, "amount")
+	incomeAllocated := store.GetSum(repo, allocations, "amount")
+
+	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+		strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+		strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+		strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64)),
 		theme.ForegroundColor())
 	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 		store.GetSum(repo, Expense{}, "amount"),

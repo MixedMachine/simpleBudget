@@ -105,10 +105,12 @@ func CreateListComponents(
 						}
 					}
 					incomeList.Refresh()
-					incomeTotalLabel.Text = "Total: $" +
-						strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
-						" \t Allocated: $" +
-						strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
+					incomeTotal := store.GetSum(repo, incomes, "amount")
+					incomeAllocated := store.GetSum(repo, allocations, "amount")
+					incomeTotalLabel.Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+						strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+						strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+						strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
 					incomeTotalLabel.Refresh()
 				}, *myWindow)
 
@@ -136,10 +138,12 @@ func CreateListComponents(
 							}
 						}
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" +
-							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
-							" \t Allocated: $" +
-							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
+						incomeTotal := store.GetSum(repo, incomes, "amount")
+						incomeAllocated := store.GetSum(repo, allocations, "amount")
+						incomeTotalLabel.Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
 						incomeTotalLabel.Refresh()
 						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 							store.GetSum(repo, models.Expense{}, "amount"),
@@ -397,10 +401,12 @@ func CreateListComponents(
 						store.GetAll(repo, incomes)
 						allocationList.Refresh()
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" +
-							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
-							" \t Allocated: $" +
-							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
+						incomeTotal := store.GetSum(repo, incomes, "amount")
+						incomeAllocated := store.GetSum(repo, allocations, "amount")
+						incomeTotalLabel.Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
 						incomeTotalLabel.Refresh()
 						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 							store.GetSum(repo, models.Expense{}, "amount"),
@@ -432,10 +438,12 @@ func CreateListComponents(
 						}
 						allocationList.Refresh()
 						incomeList.Refresh()
-						incomeTotalLabel.Text = "Total: $" +
-							strconv.FormatFloat(store.GetSum(repo, incomes, "amount"), 'f', 2, 64) +
-							" \t Allocated: $" +
-							strconv.FormatFloat(store.GetSum(repo, allocations, "amount"), 'f', 2, 64)
+						incomeTotal := store.GetSum(repo, incomes, "amount")
+						incomeAllocated := store.GetSum(repo, allocations, "amount")
+						incomeTotalLabel.Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
 						incomeTotalLabel.Refresh()
 						expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 							store.GetSum(repo, models.Expense{}, "amount"),
