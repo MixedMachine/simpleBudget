@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/mixedmachine/simple-budget-app/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -59,4 +60,34 @@ func Update[T any](s *SqlDB, id uint, element T) error {
 func Delete[T any](s *SqlDB, id uint, element T) error {
 	result := s.db.Delete(element, id)
 	return result.Error
+}
+
+func DeleteAllAllocations(repo *SqlDB, allocations *[]models.Allocation) error {
+	for _, allocation := range *allocations {
+		err := Delete(repo, allocation.ID, &models.Allocation{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func DeleteAllIncomes(repo *SqlDB, incomes *[]models.Income) error {
+	for _, income := range *incomes {
+		err := Delete(repo, income.ID, &models.Income{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func DeleteAllExpenses(repo *SqlDB, expenses *[]models.Expense) error {
+	for _, expense := range *expenses {
+		err := Delete(repo, expense.ID, &models.Expense{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

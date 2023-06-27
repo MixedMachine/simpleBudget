@@ -42,7 +42,7 @@ If you do not have make installed, you can run `go mod download` to install the 
     - [ ] Due to the above, there should be an export button to "snapshot" the current budget
 - [ ] Add a "snapshot" button to save the current budget
 - [ ] Add a "load" button to load a saved budget
-- [ ] Add a "clear" button to clear the current budget
+- [x] Add a "clear" button to clear the current budget
 - [x] enable the user to add notes
 - [ ] enable a switch to save locally or to remote database (paid feature or bring your own database)
 - [ ] Add login (paid feature)
@@ -59,6 +59,7 @@ If you do not have make installed, you can run `go mod download` to install the 
 - [x] Allocation doesn't need to do anything to income.Allocation
 - [x] income.Allocation should be removed since switching to sql database for getting income allocaitons
 - [ ] Icon doesn't show up with installer
+- [ ] Using the same name for income and expense causes the application to crash
 
 \* Add more bugs in github issues as they're found
 

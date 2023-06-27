@@ -18,6 +18,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 )
@@ -137,14 +138,60 @@ func main() {
 	expenseLabel.TextSize = 20
 	expenseLabel.TextStyle = fyne.TextStyle{Bold: true}
 
-	incomeHeader := container.New(layout.NewHBoxLayout(),
-		incomeLabel,
-		incomeTotalLabel,
+	incomeHeader := container.New(layout.NewVBoxLayout(),
+		container.New(layout.NewHBoxLayout(),
+			incomeLabel,
+			incomeTotalLabel,
+		),
+		container.NewBorder(
+			nil, nil, nil,
+			widget.NewButton("clear", func() {
+				dialog := dialog.NewConfirm(
+					"Clear Income",
+					"Are you sure you want to clear all income?",
+					func(ok bool) {
+						if ok {
+							store.DeleteAllIncomes(repo, incomes)
+							incomes = NewIncomes()
+							budget["incomeList"].Refresh()
+						}
+					},
+					myWindow,
+				)
+				dialog.SetDismissText("Cancel")
+				dialog.SetConfirmText("Clear")
+				dialog.Show()
+			}),
+			nil,
+		),
 	)
 
-	expenseHeader := container.New(layout.NewHBoxLayout(),
-		expenseLabel,
-		expenseTotalLabel,
+	expenseHeader := container.New(layout.NewVBoxLayout(),
+		container.New(layout.NewHBoxLayout(),
+			expenseLabel,
+			expenseTotalLabel,
+		),
+		container.NewBorder(
+			nil, nil, nil,
+			widget.NewButton("clear", func() {
+				dialog := dialog.NewConfirm(
+					"Clear Expenses",
+					"Are you sure you want to clear all expenses?",
+					func(ok bool) {
+						if ok {
+							store.DeleteAllExpenses(repo, expenses)
+							expenses = NewExpenses()
+							budget["expenseList"].Refresh()
+						}
+					},
+					myWindow,
+				)
+				dialog.SetDismissText("Cancel")
+				dialog.SetConfirmText("Clear")
+				dialog.Show()
+			}),
+			nil,
+		),
 	)
 
 	cols := 2
@@ -152,7 +199,7 @@ func main() {
 		cols = 1
 	}
 
-	transactions := container.New(layout.NewGridLayout(cols),
+	transactionsTab := container.New(layout.NewGridLayout(cols),
 		container.NewBorder(
 			incomeHeader,
 			nil,
@@ -169,6 +216,34 @@ func main() {
 		),
 	)
 
+	allocationsHeader := container.NewBorder(
+		nil, nil,
+		canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, Allocation{}, "amount")), color.White),
+		widget.NewButton("clear", func() {
+			dialog := dialog.NewConfirm(
+				"Clear Allocations",
+				"Are you sure you want to clear all allocations?",
+				func(ok bool) {
+					if ok {
+						store.DeleteAllAllocations(repo, allocations)
+						allocations = NewAllocations()
+						budget["allocationList"].Refresh()
+					}
+				}, myWindow,
+			)
+			dialog.SetDismissText("Cancel")
+			dialog.SetConfirmText("Clear")
+			dialog.Show()
+		}),
+		nil,
+	)
+
+	allocationsTab := container.NewBorder(
+		allocationsHeader,
+		nil, nil, nil,
+		budget["allocationList"],
+	)
+
 	notesTab := components.CreateNotesComponent(
 		myWindow,
 		repo,
@@ -177,10 +252,10 @@ func main() {
 
 	centerContainer := container.NewAppTabs(
 		container.NewTabItem("Transactions",
-			transactions,
+			transactionsTab,
 		),
 		container.NewTabItem("Allocations",
-			budget["allocationList"],
+			allocationsTab,
 		),
 		container.NewTabItem("Notes",
 			notesTab,
