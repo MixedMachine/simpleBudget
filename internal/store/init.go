@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/mixedmachine/simple-budget-app/models"
+	"github.com/mixedmachine/simple-budget-app/internal/models"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"

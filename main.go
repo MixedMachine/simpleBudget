@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/mixedmachine/simple-budget-app/components"
-	. "github.com/mixedmachine/simple-budget-app/components"
-	. "github.com/mixedmachine/simple-budget-app/models"
-	"github.com/mixedmachine/simple-budget-app/store"
+	"github.com/mixedmachine/simple-budget-app/internal/components"
+	. "github.com/mixedmachine/simple-budget-app/internal/components"
+	. "github.com/mixedmachine/simple-budget-app/internal/models"
+	"github.com/mixedmachine/simple-budget-app/internal/store"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"

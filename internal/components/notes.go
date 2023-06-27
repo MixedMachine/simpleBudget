@@ -1,8 +1,8 @@
 package components
 
 import (
-	"github.com/mixedmachine/simple-budget-app/models"
-	"github.com/mixedmachine/simple-budget-app/store"
+	"github.com/mixedmachine/simple-budget-app/internal/models"
+	"github.com/mixedmachine/simple-budget-app/internal/store"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"

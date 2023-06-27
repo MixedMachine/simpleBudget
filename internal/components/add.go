@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mixedmachine/simple-budget-app/models"
-	"github.com/mixedmachine/simple-budget-app/store"
-	"github.com/mixedmachine/simple-budget-app/utils"
+	"github.com/mixedmachine/simple-budget-app/internal/models"
+	"github.com/mixedmachine/simple-budget-app/internal/store"
+	"github.com/mixedmachine/simple-budget-app/internal/utils"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
