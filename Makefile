@@ -17,7 +17,7 @@ build.win: init
 
 build.lin: init
 	@echo "Building linux executable..."
-	@go build -o bin/budget ./...
+	@go build -o bin/budget
 
 build.all: build.win build.lin
 	@echo "Building for all platforms complete."

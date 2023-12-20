@@ -44,10 +44,13 @@ func InitializeSQL(sqlType SQLType, dbLocation string) *gorm.DB {
 
 	// TODO: Make this more dynamic
 	// IDEA: Use argument to pass in models and iterate through them
-	DB.AutoMigrate(&models.Income{})
-	DB.AutoMigrate(&models.Expense{})
-	DB.AutoMigrate(&models.Allocation{})
-	DB.AutoMigrate(&models.Notes{})
+	err = DB.AutoMigrate(&models.Income{})
+	err = DB.AutoMigrate(&models.Expense{})
+	err = DB.AutoMigrate(&models.Allocation{})
+	err = DB.AutoMigrate(&models.Notes{})
+	if err != nil {
+		return nil
+	}
 
 	return DB
 }

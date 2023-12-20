@@ -80,7 +80,10 @@ func CreateAddButtons(
 				if err := store.Create(repo, &i); err != nil {
 					log.Fatal(err)
 				}
-				store.GetAll(repo, incomes)
+				err = store.GetAll(repo, incomes)
+				if err != nil {
+					return
+				}
 				incomeList.Refresh()
 				incomeTotal := store.GetSum(repo, incomes, "amount")
 				incomeAllocated := store.GetSum(repo, allocations, "amount")
@@ -149,7 +152,10 @@ func CreateAddButtons(
 				if err := store.Create(repo, &e); err != nil {
 					log.Fatal(err)
 				}
-				store.GetAll(repo, expenses)
+				err = store.GetAll(repo, expenses)
+				if err != nil {
+					return
+				}
 				expenseList.Refresh()
 				expenseTotalLabel.Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 					store.GetSum(repo, models.Expense{}, "amount"),
@@ -262,13 +268,22 @@ func CreateAddButtons(
 					return
 				}
 
-				store.Update(repo, fromIncome.ID, fromIncome)
+				err = store.Update(repo, fromIncome.ID, fromIncome)
+				if err != nil {
+					return
+				}
 
-				if err := store.Create(repo, &a); err != nil {
+				if err = store.Create(repo, &a); err != nil {
 					log.Fatal(err)
 				}
-				store.GetAll(repo, allocations)
-				store.GetAll(repo, incomes)
+				err = store.GetAll(repo, allocations)
+				if err != nil {
+					return
+				}
+				err = store.GetAll(repo, incomes)
+				if err != nil {
+					return
+				}
 				allocationList.Refresh()
 				incomeList.Refresh()
 				incomeTotal := store.GetSum(repo, incomes, "amount")

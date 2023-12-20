@@ -24,11 +24,14 @@ import (
 )
 
 const (
-	APP_NAME = "Simple Budget App"
+	AppName = "Simple Budget App"
 )
 
 func init() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		println("Could not load configs")
+	}
 	log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:     true,
@@ -41,7 +44,7 @@ func main() {
 	var dbLocation string
 
 	myApp := app.NewWithID("com.mixedmachine.simplebudgetapp")
-	myWindow := myApp.NewWindow(APP_NAME)
+	myWindow := myApp.NewWindow(AppName)
 	if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
 		myWindow.SetIcon(resourceIconPng)
 	}
@@ -146,7 +149,7 @@ func main() {
 		container.NewBorder(
 			nil, nil, nil,
 			widget.NewButton("clear", func() {
-				dialog := dialog.NewConfirm(
+				dialogPopUp := dialog.NewConfirm(
 					"Clear Income",
 					"Are you sure you want to clear all income?",
 					func(ok bool) {
@@ -158,9 +161,9 @@ func main() {
 					},
 					myWindow,
 				)
-				dialog.SetDismissText("Cancel")
-				dialog.SetConfirmText("Clear")
-				dialog.Show()
+				dialogPopUp.SetDismissText("Cancel")
+				dialogPopUp.SetConfirmText("Clear")
+				dialogPopUp.Show()
 			}),
 			nil,
 		),
@@ -174,7 +177,7 @@ func main() {
 		container.NewBorder(
 			nil, nil, nil,
 			widget.NewButton("clear", func() {
-				dialog := dialog.NewConfirm(
+				dialogPopUp := dialog.NewConfirm(
 					"Clear Expenses",
 					"Are you sure you want to clear all expenses?",
 					func(ok bool) {
@@ -186,9 +189,9 @@ func main() {
 					},
 					myWindow,
 				)
-				dialog.SetDismissText("Cancel")
-				dialog.SetConfirmText("Clear")
-				dialog.Show()
+				dialogPopUp.SetDismissText("Cancel")
+				dialogPopUp.SetConfirmText("Clear")
+				dialogPopUp.Show()
 			}),
 			nil,
 		),
@@ -220,7 +223,7 @@ func main() {
 		nil, nil,
 		canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, Allocation{}, "amount")), color.White),
 		widget.NewButton("clear", func() {
-			dialog := dialog.NewConfirm(
+			dialogPopUp := dialog.NewConfirm(
 				"Clear Allocations",
 				"Are you sure you want to clear all allocations?",
 				func(ok bool) {
@@ -231,9 +234,9 @@ func main() {
 					}
 				}, myWindow,
 			)
-			dialog.SetDismissText("Cancel")
-			dialog.SetConfirmText("Clear")
-			dialog.Show()
+			dialogPopUp.SetDismissText("Cancel")
+			dialogPopUp.SetConfirmText("Clear")
+			dialogPopUp.Show()
 		}),
 		nil,
 	)
