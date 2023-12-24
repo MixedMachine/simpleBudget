@@ -3,7 +3,7 @@ module github.com/mixedmachine/simple-budget-app
 go 1.20
 
 require (
-	fyne.io/fyne/v2 v2.4.0
+	fyne.io/fyne/v2 v2.4.2
 	github.com/sirupsen/logrus v1.8.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.1

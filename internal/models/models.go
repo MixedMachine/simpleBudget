@@ -48,6 +48,6 @@ func NewAllocations() *[]Allocation {
 	return &[]Allocation{}
 }
 
-func NewNotes() *[]Notes {
-	return &[]Notes{}
+func NewNotes() *Notes {
+	return &Notes{}
 }

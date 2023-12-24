@@ -1,6 +1,6 @@
 ICON = ./assets/icon.png
 APP_ID = com.mixedmachine.simplebudget
-VERSION = 0.3.0
+VERSION = 0.4.0
 
 init:
 	@echo "Initializing..."
@@ -13,7 +13,7 @@ init:
 
 build.win: init
 	@echo "Building windows executable..."
-	@go build -o bin/budget.exe
+	@go build -o bin/budget.exe -v
 
 build.lin: init
 	@echo "Building linux executable..."

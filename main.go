@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/mixedmachine/simple-budget-app/internal/services"
+	"github.com/mixedmachine/simple-budget-app/internal/utils"
 	"image/color"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -24,7 +27,7 @@ import (
 )
 
 const (
-	AppName = "Simple Budget App"
+	AppName = "Simple Budget"
 )
 
 func init() {
@@ -45,12 +48,8 @@ func main() {
 
 	myApp := app.NewWithID("com.mixedmachine.simplebudgetapp")
 	myWindow := myApp.NewWindow(AppName)
-	if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
-		myWindow.SetIcon(resourceIconPng)
-	}
-	if resourceIconPng, err := fyne.LoadResourceFromPath("icon.png"); err == nil {
-		myWindow.SetIcon(resourceIconPng)
-	}
+
+	setIcon(myWindow)
 
 	dbLocation = filepath.Join(myApp.Storage().RootURI().Path(), store.SQLITE_FILE)
 
@@ -61,42 +60,23 @@ func main() {
 
 	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation))
 
-	err = store.GetAll(repo, incomes)
-	if err != nil {
-		log.Error(err)
-		errBox := dialog.NewError(err, myWindow)
-		errBox.Show()
-	}
-	err = store.GetAll(repo, expenses)
-	if err != nil {
-		log.Error(err)
-		errBox := dialog.NewError(err, myWindow)
-		errBox.Show()
-	}
-	err = store.GetAll(repo, allocations)
-	if err != nil {
-		log.Error(err)
-		errBox := dialog.NewError(err, myWindow)
-		errBox.Show()
-	}
-	err = store.GetAll(repo, notes)
-	if err != nil {
-		log.Error(err)
-		errBox := dialog.NewError(err, myWindow)
-		errBox.Show()
-	}
-	if len(*notes) == 0 {
-		*notes = append(*notes, Notes{Content: ""})
-		err = store.Create(repo, &(*notes)[0])
-		if err != nil {
-			log.Error(err)
-			errBox := dialog.NewError(err, myWindow)
-			errBox.Show()
-		}
-	}
+	incomeService := services.NewIncomeService(repo, incomes)
+	err = incomeService.GetAllIncomes()
+	utils.HandleErr(myWindow, err)
 
-	incomeTotal := store.GetSum(repo, incomes, "amount")
-	incomeAllocated := store.GetSum(repo, allocations, "amount")
+	expenseService := services.NewExpenseService(repo, expenses)
+	err = expenseService.GetAllExpenses()
+	utils.HandleErr(myWindow, err)
+
+	allocationService := services.NewAllocationService(repo, allocations)
+	err = allocationService.GetAllAllocations()
+	utils.HandleErr(myWindow, err)
+
+	noteService := services.NewNoteService(repo)
+	*notes, err = noteService.GetNotes()
+
+	incomeTotal := incomeService.GetSum()
+	incomeAllocated := allocationService.GetSum()
 
 	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
 		strconv.FormatFloat(incomeTotal, 'f', 2, 64),
@@ -104,8 +84,8 @@ func main() {
 		strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64)),
 		theme.ForegroundColor())
 	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
-		store.GetSum(repo, Expense{}, "amount"),
-		store.GetSum(repo, Expense{}, "amount")-store.GetSum(repo, Allocation{}, "amount")),
+		expenseService.GetSum(),
+		expenseService.GetSum()-allocationService.GetSum()),
 		theme.ForegroundColor())
 
 	budget := CreateListComponents(
@@ -154,7 +134,8 @@ func main() {
 					"Are you sure you want to clear all income?",
 					func(ok bool) {
 						if ok {
-							store.DeleteAllIncomes(repo, incomes)
+							err := incomeService.DeleteAll()
+							utils.HandleErr(myWindow, err)
 							incomes = NewIncomes()
 							budget["incomeList"].Refresh()
 						}
@@ -182,7 +163,8 @@ func main() {
 					"Are you sure you want to clear all expenses?",
 					func(ok bool) {
 						if ok {
-							store.DeleteAllExpenses(repo, expenses)
+							err := expenseService.DeleteAll()
+							utils.HandleErr(myWindow, err)
 							expenses = NewExpenses()
 							budget["expenseList"].Refresh()
 						}
@@ -221,14 +203,15 @@ func main() {
 
 	allocationsHeader := container.NewBorder(
 		nil, nil,
-		canvas.NewText(fmt.Sprintf("Total: $%.2f", store.GetSum(repo, Allocation{}, "amount")), color.White),
+		canvas.NewText(fmt.Sprintf("Total: $%.2f", allocationService.GetSum()), color.White),
 		widget.NewButton("clear", func() {
 			dialogPopUp := dialog.NewConfirm(
 				"Clear Allocations",
 				"Are you sure you want to clear all allocations?",
 				func(ok bool) {
 					if ok {
-						store.DeleteAllAllocations(repo, allocations)
+						err := allocationService.DeleteAll()
+						utils.HandleErr(myWindow, err)
 						allocations = NewAllocations()
 						budget["allocationList"].Refresh()
 					}
@@ -280,4 +263,18 @@ func main() {
 	myWindow.CenterOnScreen()
 	myWindow.ShowAndRun()
 
+}
+
+func setIcon(window fyne.Window) {
+	iconPath := ""
+	if _, err := os.Stat("assets/icon.png"); os.IsExist(err) {
+		iconPath = "assets/icon.png"
+	} else if _, err := os.Stat("icon.png"); os.IsExist(err) {
+		iconPath = "icon.png"
+	}
+	if iconPath != "" {
+		if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
+			window.SetIcon(resourceIconPng)
+		}
+	}
 }

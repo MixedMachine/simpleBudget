@@ -18,7 +18,7 @@ import (
 func CreateNotesComponent(
 	myWindow fyne.Window,
 	repo *(store.SqlDB),
-	notes *[]models.Notes,
+	notes *models.Notes,
 ) *fyne.Container {
 	autoSave := false
 	notesTitle := canvas.NewText("Notes", theme.ForegroundColor())
@@ -34,8 +34,8 @@ func CreateNotesComponent(
 
 	notesEntry.OnChanged = func(s string) {
 		if autoSave {
-			(*notes)[0].Content = s
-			err := store.Update(repo, (*notes)[0].ID, (*notes)[0])
+			(*notes).Content = s
+			err := store.Update(repo, (*notes).ID, (*notes))
 			if err != nil {
 				log.Error(err)
 				errBox := dialog.NewError(err, myWindow)
@@ -44,11 +44,11 @@ func CreateNotesComponent(
 		}
 	}
 
-	notesEntry.SetText((*notes)[0].Content)
+	notesEntry.SetText((*notes).Content)
 
 	saveNoteBtn := widget.NewButton("Save", func() {
-		(*notes)[0].Content = notesEntry.Text
-		err := store.Update(repo, (*notes)[0].ID, (*notes)[0])
+		(*notes).Content = notesEntry.Text
+		err := store.Update(repo, (*notes).ID, *notes)
 		if err != nil {
 			log.Error(err)
 			errBox := dialog.NewError(err, myWindow)
