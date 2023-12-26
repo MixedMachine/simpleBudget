@@ -4,6 +4,25 @@ import (
 	"time"
 )
 
+type MonetaryItemInterface interface {
+	Income | Expense | Allocation
+	GetID() uint
+}
+type MonetaryItem struct {
+	ID     uint    `gorm:"primaryKey;autoIncrement"`
+	Amount float64 `gorm:"type:decimal(10,2);default:0.00;not null"`
+}
+
+func (m MonetaryItem) GetID() uint {
+	return m.ID
+}
+
+type TransactionItem struct {
+	MonetaryItem
+	Name string    `gorm:"unique;not null"`
+	Date time.Time `gorm:"type:date;not null"`
+}
+
 type User struct {
 	ID       uint   `gorm:"primaryKey;autoIncrement"`
 	Username string `gorm:"unique"`
@@ -11,24 +30,17 @@ type User struct {
 }
 
 type Income struct {
-	ID     uint      `gorm:"primaryKey;autoIncrement"`
-	Name   string    `gorm:"unique;not null"`
-	Amount float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
-	Date   time.Time `gorm:"type:date;not null"`
+	TransactionItem
 }
 
 type Expense struct {
-	ID     uint      `gorm:"primaryKey;autoIncrement"`
-	Name   string    `gorm:"unique;not null"`
-	Amount float64   `gorm:"type:decimal(10,2);default:0.00;not null"`
-	Date   time.Time `gorm:"type:date;not null"`
+	TransactionItem
 }
 
 type Allocation struct {
-	ID           uint    `gorm:"primaryKey;autoIncrement"`
-	Amount       float64 `gorm:"type:decimal(10,2);default:0.00;not null"`
-	FromIncomeID uint    `gorm:"index:idx_from_income_id;foreignKey:FromIncomeID"`
-	ToExpenseID  uint    `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
+	MonetaryItem
+	FromIncomeID uint `gorm:"index:idx_from_income_id;foreignKey:FromIncomeID"`
+	ToExpenseID  uint `gorm:"index:idx_to_expense_id;foreignKey:ToExpenseID"`
 }
 
 type Notes struct {

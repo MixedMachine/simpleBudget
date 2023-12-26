@@ -12,13 +12,13 @@ type IncomeServiceInterface interface {
 }
 
 type IncomeService struct {
-	MonetaryService
+	MonetaryService[models.Income]
 	incomes *[]models.Income
 }
 
-func NewIncomeService(repo *store.SqlDB, incomes *[]models.Income) IncomeServiceInterface {
+func NewIncomeService(repo *store.SqlDB, incomes *[]models.Income) *IncomeService {
 	return &IncomeService{
-		MonetaryService: *NewMonetaryService(repo, models.Income{}),
+		MonetaryService: *NewMonetaryService[models.Income](repo, models.Income{}, incomes),
 		incomes:         incomes,
 	}
 }
@@ -27,16 +27,6 @@ func (s *IncomeService) GetAllIncomes() error {
 	err := store.GetAll(s.GetRepo(), &s.incomes)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (s *IncomeService) DeleteAll() error {
-	for _, income := range *s.incomes {
-		err := store.Delete(s.GetRepo(), income.ID, s.GetElementType())
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

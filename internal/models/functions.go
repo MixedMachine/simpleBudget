@@ -4,10 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type transaction interface {
-	Income | Expense
-}
-
 func GetIncomeByID(incomes *[]Income, id uint) Income {
 	for _, income := range *incomes {
 		if income.ID == id {
@@ -71,7 +67,9 @@ func ReallocateFunds(income *Income, expense *Expense, allocatedToIncome, prevAm
 	}
 
 	return &Allocation{
-		Amount:       amount,
+		MonetaryItem: MonetaryItem{
+			Amount: amount,
+		},
 		FromIncomeID: income.ID,
 		ToExpenseID:  expense.ID,
 	}
@@ -86,13 +84,15 @@ func AllocateFunds(income *Income, expense *Expense, amount float64) *Allocation
 	}
 
 	return &Allocation{
-		Amount:       amount,
+		MonetaryItem: MonetaryItem{
+			Amount: amount,
+		},
 		FromIncomeID: income.ID,
 		ToExpenseID:  expense.ID,
 	}
 }
 
-func Filter[T transaction](transactions *[]T, filterFunc func(t T) bool) *[]T {
+func Filter[T TransactionItem](transactions *[]T, filterFunc func(t T) bool) *[]T {
 	var filtered []T
 	for _, t := range *transactions {
 		if filterFunc(t) {

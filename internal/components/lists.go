@@ -90,10 +90,14 @@ func CreateListComponents(
 						}
 
 						income := &models.Income{
-							ID:     incomeID,
-							Name:   incomeEntryName.Text,
-							Amount: amount,
-							Date:   date,
+							TransactionItem: models.TransactionItem{
+								MonetaryItem: models.MonetaryItem{
+									ID:     incomeID,
+									Amount: amount,
+								},
+								Name: incomeEntryName.Text,
+								Date: date,
+							},
 						}
 
 						if err := store.Update(repo, incomeID, income); err != nil {
@@ -230,10 +234,14 @@ func CreateListComponents(
 						}
 
 						expense := models.Expense{
-							ID:     expenseID,
-							Name:   expenseEntryName.Text,
-							Amount: amount,
-							Date:   date,
+							TransactionItem: models.TransactionItem{
+								MonetaryItem: models.MonetaryItem{
+									ID:     expenseID,
+									Amount: amount,
+								},
+								Name: expenseEntryName.Text,
+								Date: date,
+							},
 						}
 
 						if err := store.Update(repo, expenseID, &expense); err != nil {

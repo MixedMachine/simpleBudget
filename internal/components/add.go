@@ -72,9 +72,13 @@ func CreateAddButtons(
 				}
 
 				i := models.Income{
-					Name:   entryName.Text,
-					Amount: amount,
-					Date:   date,
+					TransactionItem: models.TransactionItem{
+						MonetaryItem: models.MonetaryItem{
+							Amount: amount,
+						},
+						Name: entryName.Text,
+						Date: date,
+					},
 				}
 
 				if err := store.Create(repo, &i); err != nil {
@@ -144,9 +148,13 @@ func CreateAddButtons(
 				}
 
 				e := models.Expense{
-					Name:   entryName.Text,
-					Amount: amount,
-					Date:   date,
+					TransactionItem: models.TransactionItem{
+						MonetaryItem: models.MonetaryItem{
+							Amount: amount,
+						},
+						Name: entryName.Text,
+						Date: date,
+					},
 				}
 
 				if err := store.Create(repo, &e); err != nil {

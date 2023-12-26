@@ -12,13 +12,13 @@ type ExpenseServiceInterface interface {
 }
 
 type ExpenseService struct {
-	MonetaryService
+	MonetaryService[models.Expense]
 	expenses *[]models.Expense
 }
 
 func NewExpenseService(repo *store.SqlDB, expenses *[]models.Expense) ExpenseServiceInterface {
 	return &ExpenseService{
-		MonetaryService: *NewMonetaryService(repo, models.Income{}),
+		MonetaryService: *NewMonetaryService[models.Expense](repo, models.Income{}, expenses),
 		expenses:        expenses,
 	}
 }
@@ -27,16 +27,6 @@ func (s *ExpenseService) GetAllExpenses() error {
 	err := store.GetAll(s.repo, &s.expenses)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (s *ExpenseService) DeleteAll() error {
-	for _, expense := range *s.expenses {
-		err := store.Delete(s.GetRepo(), expense.ID, s.GetElementType())
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

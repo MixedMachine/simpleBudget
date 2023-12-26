@@ -12,13 +12,13 @@ type AllocationServiceInterface interface {
 }
 
 type AllocationService struct {
-	MonetaryService
+	MonetaryService[models.Allocation]
 	allocations *[]models.Allocation
 }
 
 func NewAllocationService(repo *store.SqlDB, allocations *[]models.Allocation) AllocationServiceInterface {
 	return &AllocationService{
-		MonetaryService: *NewMonetaryService(repo, models.Income{}),
+		MonetaryService: *NewMonetaryService[models.Allocation](repo, models.Income{}, allocations),
 		allocations:     allocations,
 	}
 }
@@ -27,16 +27,6 @@ func (s *AllocationService) GetAllAllocations() error {
 	err := store.GetAll(s.repo, &s.allocations)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (s *AllocationService) DeleteAll() error {
-	for _, allocations := range *s.allocations {
-		err := store.Delete(s.GetRepo(), allocations.ID, s.GetElementType())
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
