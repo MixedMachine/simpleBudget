@@ -30,6 +30,13 @@ const (
 	AppName = "Simple Budget"
 )
 
+type SimpleBudget struct {
+	App      fyne.App
+	Window   fyne.Window
+	Repo     *store.SqlDB
+	Services map[string]any
+}
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -43,39 +50,43 @@ func init() {
 }
 
 func main() {
+	var simpleBudget SimpleBudget
 	var err error
-	var dbLocation string
 
-	myApp := app.NewWithID("com.mixedmachine.simplebudgetapp")
-	myWindow := myApp.NewWindow(AppName)
+	simpleBudget.App = app.NewWithID("com.mixedmachine.simplebudgetapp")
+	simpleBudget.Window = simpleBudget.App.NewWindow(AppName)
 
-	setIcon(myWindow)
-
-	dbLocation = filepath.Join(myApp.Storage().RootURI().Path(), store.SQLITE_FILE)
+	simpleBudget.setIcon()
+	simpleBudget.setUpRepo()
 
 	incomes := NewIncomes()
 	expenses := NewExpenses()
 	allocations := NewAllocations()
 	notes := NewNotes()
 
-	repo := store.NewSqlDB(store.InitializeSQL(store.SQLITE, dbLocation))
-
-	incomeService := services.NewIncomeService(repo, incomes)
+	incomeService := services.NewIncomeService(simpleBudget.Repo, incomes)
 	err = incomeService.GetAllIncomes()
-	utils.HandleErr(myWindow, err)
+	utils.HandleErr(simpleBudget.Window, err)
 
-	expenseService := services.NewExpenseService(repo, expenses)
+	expenseService := services.NewExpenseService(simpleBudget.Repo, expenses)
 	err = expenseService.GetAllExpenses()
-	utils.HandleErr(myWindow, err)
+	utils.HandleErr(simpleBudget.Window, err)
 
-	allocationService := services.NewAllocationService(repo, allocations)
+	allocationService := services.NewAllocationService(simpleBudget.Repo, allocations)
 	err = allocationService.GetAllAllocations()
-	utils.HandleErr(myWindow, err)
+	utils.HandleErr(simpleBudget.Window, err)
 
-	noteService := services.NewNoteService(repo)
+	noteService := services.NewNoteService(simpleBudget.Repo)
 	*notes, err = noteService.GetNotes()
 
-	incomeTotal := incomeService.GetSum()
+	simpleBudget.Services = map[string]any{
+		"incomes":     incomeService,
+		"expenses":    expenseService,
+		"allocations": allocationService,
+		"notes":       noteService,
+	}
+
+	incomeTotal := services.IncomeService(simpleBudget.Services["income"]).GetSum()
 	incomeAllocated := allocationService.GetSum()
 
 	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
@@ -89,14 +100,14 @@ func main() {
 		theme.ForegroundColor())
 
 	budget := CreateListComponents(
-		&myWindow,
-		repo, incomeTotalLabel, expenseTotalLabel,
+		&simpleBudget.Window,
+		simpleBudget.Repo, incomeTotalLabel, expenseTotalLabel,
 		incomes, expenses, allocations,
 	)
 
 	addButtons := CreateAddButtons(
-		&myWindow,
-		repo, incomeTotalLabel, expenseTotalLabel,
+		&simpleBudget.Window,
+		simpleBudget.Repo, incomeTotalLabel, expenseTotalLabel,
 		incomes, expenses, allocations,
 		budget,
 	)
@@ -135,12 +146,12 @@ func main() {
 					func(ok bool) {
 						if ok {
 							err := incomeService.DeleteAll()
-							utils.HandleErr(myWindow, err)
+							utils.HandleErr(simpleBudget.Window, err)
 							incomes = NewIncomes()
 							budget["incomeList"].Refresh()
 						}
 					},
-					myWindow,
+					simpleBudget.Window,
 				)
 				dialogPopUp.SetDismissText("Cancel")
 				dialogPopUp.SetConfirmText("Clear")
@@ -164,12 +175,12 @@ func main() {
 					func(ok bool) {
 						if ok {
 							err := expenseService.DeleteAll()
-							utils.HandleErr(myWindow, err)
+							utils.HandleErr(simpleBudget.Window, err)
 							expenses = NewExpenses()
 							budget["expenseList"].Refresh()
 						}
 					},
-					myWindow,
+					simpleBudget.Window,
 				)
 				dialogPopUp.SetDismissText("Cancel")
 				dialogPopUp.SetConfirmText("Clear")
@@ -211,11 +222,11 @@ func main() {
 				func(ok bool) {
 					if ok {
 						err := allocationService.DeleteAll()
-						utils.HandleErr(myWindow, err)
+						utils.HandleErr(simpleBudget.Window, err)
 						allocations = NewAllocations()
 						budget["allocationList"].Refresh()
 					}
-				}, myWindow,
+				}, simpleBudget.Window,
 			)
 			dialogPopUp.SetDismissText("Cancel")
 			dialogPopUp.SetConfirmText("Clear")
@@ -231,8 +242,8 @@ func main() {
 	)
 
 	notesTab := components.CreateNotesComponent(
-		myWindow,
-		repo,
+		simpleBudget.Window,
+		simpleBudget.Repo,
 		notes,
 	)
 
@@ -248,7 +259,7 @@ func main() {
 		),
 	)
 
-	myWindow.SetContent(
+	simpleBudget.Window.SetContent(
 		container.NewBorder(
 			nil,
 			footerContainer,
@@ -258,14 +269,14 @@ func main() {
 		),
 	)
 
-	myWindow.Resize(fyne.NewSize(1000, 600))
-	myWindow.SetMaster()
-	myWindow.CenterOnScreen()
-	myWindow.ShowAndRun()
+	simpleBudget.Window.Resize(fyne.NewSize(1000, 600))
+	simpleBudget.Window.SetMaster()
+	simpleBudget.Window.CenterOnScreen()
+	simpleBudget.Window.ShowAndRun()
 
 }
 
-func setIcon(window fyne.Window) {
+func (s *SimpleBudget) setIcon() {
 	iconPath := ""
 	if _, err := os.Stat("assets/icon.png"); os.IsExist(err) {
 		iconPath = "assets/icon.png"
@@ -274,7 +285,18 @@ func setIcon(window fyne.Window) {
 	}
 	if iconPath != "" {
 		if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
-			window.SetIcon(resourceIconPng)
+			s.Window.SetIcon(resourceIconPng)
 		}
 	}
+}
+
+func (s *SimpleBudget) setUpRepo() {
+	s.Repo = store.NewSqlDB(
+		store.InitializeSQL(
+			store.SQLITE, filepath.Join(
+				s.App.Storage().RootURI().Path(), store.SQLITE_FILE,
+			),
+		),
+	)
+
 }
