@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mixedmachine/simple-budget-app/internal/core"
 	"github.com/mixedmachine/simple-budget-app/internal/models"
 	"github.com/mixedmachine/simple-budget-app/internal/store"
 	"github.com/mixedmachine/simple-budget-app/internal/utils"
@@ -17,7 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func CreateAddButtons(simpleBudget *models.SimpleBudget) map[string]*(widget.Button) {
+func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Button) {
 	incomeList := simpleBudget.ListComponents["income"]
 	expenseList := simpleBudget.ListComponents["expense"]
 	allocationList := simpleBudget.ListComponents["allocation"]
@@ -26,7 +27,7 @@ func CreateAddButtons(simpleBudget *models.SimpleBudget) map[string]*(widget.But
 	var allocations []models.Allocation
 
 	addIncome := widget.NewButton("Add Income", func() {
-		incomes = simpleBudget.IncomeService.GetSortedIncome()
+		incomes = simpleBudget.IncomeService.GetSortedIncomes()
 		entryName := widget.NewEntry()
 		entryAmount := widget.NewEntry()
 		entryDate := widget.NewEntry()

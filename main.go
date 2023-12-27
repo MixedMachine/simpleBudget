@@ -8,7 +8,7 @@ import (
 
 	"github.com/mixedmachine/simple-budget-app/internal/components"
 	. "github.com/mixedmachine/simple-budget-app/internal/components"
-	"github.com/mixedmachine/simple-budget-app/internal/models"
+	"github.com/mixedmachine/simple-budget-app/internal/core"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -39,7 +39,7 @@ func init() {
 }
 
 func main() {
-	var simpleBudget models.SimpleBudget
+	var simpleBudget core.SimpleBudget
 
 	simpleBudget.App = app.NewWithID("com.mixedmachine.simplebudgetapp")
 	simpleBudget.Window = simpleBudget.App.NewWindow(AppName)

@@ -10,7 +10,7 @@ type IncomeServiceInterface[T models.Income] interface {
 	GetSum() float64
 	DeleteAll() error
 	GetItems() []T
-	GetSortedIncome() []models.Income
+	GetSortedIncomes() []models.Income
 }
 
 type IncomeService struct {
@@ -33,8 +33,8 @@ func (s *IncomeService) GetAllIncomes() error {
 	return nil
 }
 
-func (s *IncomeService) GetSortedIncome() []models.Income {
-	sortedIncome := s.GetItems()
-	models.SortIncomeByDate(&sortedIncome)
-	return sortedIncome
+func (s *IncomeService) GetSortedIncomes() []models.Income {
+	sortedIncomes := s.GetItems()
+	models.SortIncomeByDate(&sortedIncomes)
+	return sortedIncomes
 }

@@ -33,8 +33,8 @@ func (s *ExpenseService) GetAllExpenses() error {
 	return nil
 }
 
-func (s *ExpenseService) GetSortedExpense() []models.Expense {
-	sortedExpense := s.GetItems()
-	models.SortExpenseByDate(&sortedExpense)
-	return sortedExpense
+func (s *ExpenseService) GetSortedExpenses() []models.Expense {
+	sortedExpenses := s.GetItems()
+	models.SortExpenseByDate(&sortedExpenses)
+	return sortedExpenses
 }

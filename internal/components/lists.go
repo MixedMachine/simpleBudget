@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mixedmachine/simple-budget-app/internal/core"
 	"github.com/mixedmachine/simple-budget-app/internal/models"
 	"github.com/mixedmachine/simple-budget-app/internal/store"
 	"github.com/mixedmachine/simple-budget-app/internal/utils"
@@ -17,7 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func CreateListComponents(simpleBudget *models.SimpleBudget) map[string]*widget.List {
+func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.List {
 	var err error
 	var incomeList *widget.List
 	var expenseList *widget.List
@@ -38,7 +39,7 @@ func CreateListComponents(simpleBudget *models.SimpleBudget) map[string]*widget.
 			edtb := widget.NewButtonWithIcon("", theme.DocumentCreateIcon(), nil)
 			delb := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
 			buttonContainer := container.NewHBox(edtb, delb)
-			incomes = simpleBudget.IncomeService.GetSortedIncome()
+			incomes = simpleBudget.IncomeService.GetSortedIncomes()
 			return container.NewBorder(nil, nil, nil, buttonContainer, incomeContainer)
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
