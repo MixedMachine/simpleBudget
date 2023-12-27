@@ -5,10 +5,12 @@ import (
 	"github.com/mixedmachine/simple-budget-app/internal/store"
 )
 
-type IncomeServiceInterface interface {
+type IncomeServiceInterface[T models.Income] interface {
 	GetAllIncomes() error
 	GetSum() float64
 	DeleteAll() error
+	GetItems() []T
+	GetSortedIncome() []models.Income
 }
 
 type IncomeService struct {
@@ -29,4 +31,10 @@ func (s *IncomeService) GetAllIncomes() error {
 		return err
 	}
 	return nil
+}
+
+func (s *IncomeService) GetSortedIncome() []models.Income {
+	sortedIncome := s.GetItems()
+	models.SortIncomeByDate(&sortedIncome)
+	return sortedIncome
 }

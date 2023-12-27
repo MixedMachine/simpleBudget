@@ -2,17 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/mixedmachine/simple-budget-app/internal/services"
 	"github.com/mixedmachine/simple-budget-app/internal/utils"
 	"image/color"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/mixedmachine/simple-budget-app/internal/components"
 	. "github.com/mixedmachine/simple-budget-app/internal/components"
-	. "github.com/mixedmachine/simple-budget-app/internal/models"
-	"github.com/mixedmachine/simple-budget-app/internal/store"
+	"github.com/mixedmachine/simple-budget-app/internal/models"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -30,13 +26,6 @@ const (
 	AppName = "Simple Budget"
 )
 
-type SimpleBudget struct {
-	App      fyne.App
-	Window   fyne.Window
-	Repo     *store.SqlDB
-	Services map[string]any
-}
-
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -50,67 +39,33 @@ func init() {
 }
 
 func main() {
-	var simpleBudget SimpleBudget
-	var err error
+	var simpleBudget models.SimpleBudget
 
 	simpleBudget.App = app.NewWithID("com.mixedmachine.simplebudgetapp")
 	simpleBudget.Window = simpleBudget.App.NewWindow(AppName)
 
-	simpleBudget.setIcon()
-	simpleBudget.setUpRepo()
+	simpleBudget.SetIcon()
+	simpleBudget.SetUpRepo()
+	simpleBudget.SetUpServices()
 
-	incomes := NewIncomes()
-	expenses := NewExpenses()
-	allocations := NewAllocations()
-	notes := NewNotes()
+	incomeTotal := simpleBudget.IncomeService.GetSum()
+	incomeAllocated := simpleBudget.AllocationService.GetSum()
 
-	incomeService := services.NewIncomeService(simpleBudget.Repo, incomes)
-	err = incomeService.GetAllIncomes()
-	utils.HandleErr(simpleBudget.Window, err)
-
-	expenseService := services.NewExpenseService(simpleBudget.Repo, expenses)
-	err = expenseService.GetAllExpenses()
-	utils.HandleErr(simpleBudget.Window, err)
-
-	allocationService := services.NewAllocationService(simpleBudget.Repo, allocations)
-	err = allocationService.GetAllAllocations()
-	utils.HandleErr(simpleBudget.Window, err)
-
-	noteService := services.NewNoteService(simpleBudget.Repo)
-	*notes, err = noteService.GetNotes()
-
-	simpleBudget.Services = map[string]any{
-		"incomes":     incomeService,
-		"expenses":    expenseService,
-		"allocations": allocationService,
-		"notes":       noteService,
+	simpleBudget.LabelComponents = map[string]*canvas.Text{
+		"incomeTotal": canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+			strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+			strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+			strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64)),
+			theme.ForegroundColor()),
+		"expenseTotal": canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+			simpleBudget.ExpenseService.GetSum(),
+			simpleBudget.ExpenseService.GetSum()-simpleBudget.AllocationService.GetSum()),
+			theme.ForegroundColor()),
 	}
 
-	incomeTotal := services.IncomeService(simpleBudget.Services["income"]).GetSum()
-	incomeAllocated := allocationService.GetSum()
+	simpleBudget.ListComponents = CreateListComponents(&simpleBudget)
 
-	incomeTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
-		strconv.FormatFloat(incomeTotal, 'f', 2, 64),
-		strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
-		strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64)),
-		theme.ForegroundColor())
-	expenseTotalLabel := canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
-		expenseService.GetSum(),
-		expenseService.GetSum()-allocationService.GetSum()),
-		theme.ForegroundColor())
-
-	budget := CreateListComponents(
-		&simpleBudget.Window,
-		simpleBudget.Repo, incomeTotalLabel, expenseTotalLabel,
-		incomes, expenses, allocations,
-	)
-
-	addButtons := CreateAddButtons(
-		&simpleBudget.Window,
-		simpleBudget.Repo, incomeTotalLabel, expenseTotalLabel,
-		incomes, expenses, allocations,
-		budget,
-	)
+	addButtons := CreateAddButtons(&simpleBudget)
 
 	footerContainerAdds := container.New(layout.NewHBoxLayout(),
 		addButtons["addIncome"],
@@ -135,7 +90,7 @@ func main() {
 	incomeHeader := container.New(layout.NewVBoxLayout(),
 		container.New(layout.NewHBoxLayout(),
 			incomeLabel,
-			incomeTotalLabel,
+			simpleBudget.LabelComponents["incomeTotal"],
 		),
 		container.NewBorder(
 			nil, nil, nil,
@@ -145,10 +100,9 @@ func main() {
 					"Are you sure you want to clear all income?",
 					func(ok bool) {
 						if ok {
-							err := incomeService.DeleteAll()
+							err := simpleBudget.IncomeService.DeleteAll()
 							utils.HandleErr(simpleBudget.Window, err)
-							incomes = NewIncomes()
-							budget["incomeList"].Refresh()
+							simpleBudget.ListComponents["income"].Refresh()
 						}
 					},
 					simpleBudget.Window,
@@ -164,7 +118,7 @@ func main() {
 	expenseHeader := container.New(layout.NewVBoxLayout(),
 		container.New(layout.NewHBoxLayout(),
 			expenseLabel,
-			expenseTotalLabel,
+			simpleBudget.LabelComponents["expenseTotal"],
 		),
 		container.NewBorder(
 			nil, nil, nil,
@@ -174,10 +128,9 @@ func main() {
 					"Are you sure you want to clear all expenses?",
 					func(ok bool) {
 						if ok {
-							err := expenseService.DeleteAll()
+							err := simpleBudget.ExpenseService.DeleteAll()
 							utils.HandleErr(simpleBudget.Window, err)
-							expenses = NewExpenses()
-							budget["expenseList"].Refresh()
+							simpleBudget.ListComponents["expense"].Refresh()
 						}
 					},
 					simpleBudget.Window,
@@ -201,30 +154,29 @@ func main() {
 			nil,
 			nil,
 			nil,
-			budget["incomeList"],
+			simpleBudget.ListComponents["income"],
 		),
 		container.NewBorder(
 			expenseHeader,
 			nil,
 			nil,
 			nil,
-			budget["expenseList"],
+			simpleBudget.ListComponents["expense"],
 		),
 	)
 
 	allocationsHeader := container.NewBorder(
 		nil, nil,
-		canvas.NewText(fmt.Sprintf("Total: $%.2f", allocationService.GetSum()), color.White),
+		canvas.NewText(fmt.Sprintf("Total: $%.2f", simpleBudget.AllocationService.GetSum()), color.White),
 		widget.NewButton("clear", func() {
 			dialogPopUp := dialog.NewConfirm(
 				"Clear Allocations",
 				"Are you sure you want to clear all allocations?",
 				func(ok bool) {
 					if ok {
-						err := allocationService.DeleteAll()
+						err := simpleBudget.AllocationService.DeleteAll()
 						utils.HandleErr(simpleBudget.Window, err)
-						allocations = NewAllocations()
-						budget["allocationList"].Refresh()
+						simpleBudget.ListComponents["allocation"].Refresh()
 					}
 				}, simpleBudget.Window,
 			)
@@ -238,13 +190,13 @@ func main() {
 	allocationsTab := container.NewBorder(
 		allocationsHeader,
 		nil, nil, nil,
-		budget["allocationList"],
+		simpleBudget.ListComponents["allocation"],
 	)
 
 	notesTab := components.CreateNotesComponent(
 		simpleBudget.Window,
 		simpleBudget.Repo,
-		notes,
+		&simpleBudget.Notes,
 	)
 
 	centerContainer := container.NewAppTabs(
@@ -273,30 +225,5 @@ func main() {
 	simpleBudget.Window.SetMaster()
 	simpleBudget.Window.CenterOnScreen()
 	simpleBudget.Window.ShowAndRun()
-
-}
-
-func (s *SimpleBudget) setIcon() {
-	iconPath := ""
-	if _, err := os.Stat("assets/icon.png"); os.IsExist(err) {
-		iconPath = "assets/icon.png"
-	} else if _, err := os.Stat("icon.png"); os.IsExist(err) {
-		iconPath = "icon.png"
-	}
-	if iconPath != "" {
-		if resourceIconPng, err := fyne.LoadResourceFromPath("assets/icon.png"); err == nil {
-			s.Window.SetIcon(resourceIconPng)
-		}
-	}
-}
-
-func (s *SimpleBudget) setUpRepo() {
-	s.Repo = store.NewSqlDB(
-		store.InitializeSQL(
-			store.SQLITE, filepath.Join(
-				s.App.Storage().RootURI().Path(), store.SQLITE_FILE,
-			),
-		),
-	)
 
 }

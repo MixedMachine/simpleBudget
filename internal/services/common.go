@@ -21,6 +21,14 @@ func NewService(repo *store.SqlDB, element any) *Service {
 	}
 }
 
+type MonetaryServiceInterface[T models.MonetaryItemInterface] interface {
+	GetElementExample() any
+	GetItems() []T
+	GetRepo() *store.SqlDB
+	GetSum() float64
+	DeleteAll() error
+}
+
 type MonetaryService[T models.MonetaryItemInterface] struct {
 	Service
 	items *[]T
@@ -37,17 +45,21 @@ func (s *Service) GetRepo() *store.SqlDB {
 	return s.repo
 }
 
-func (s *Service) GetElementType() any {
+func (s *Service) GetElementExample() any {
 	return &s.element
 }
 
+func (s *MonetaryService[T]) GetItems() []T {
+	return *s.items
+}
+
 func (s *MonetaryService[T]) GetSum() float64 {
-	return store.GetSum(s.GetRepo(), s.GetElementType(), "amount")
+	return store.GetSum(s.GetRepo(), s.GetElementExample(), "amount")
 }
 
 func (s *MonetaryService[T]) DeleteAll() error {
 	for _, item := range *s.items {
-		err := store.Delete(s.GetRepo(), item.GetID(), s.GetElementType())
+		err := store.Delete(s.GetRepo(), item.GetID(), s.GetElementExample())
 		if err != nil {
 			return err
 		}

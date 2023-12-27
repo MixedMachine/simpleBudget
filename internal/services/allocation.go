@@ -5,10 +5,12 @@ import (
 	"github.com/mixedmachine/simple-budget-app/internal/store"
 )
 
-type AllocationServiceInterface interface {
+type AllocationServiceInterface[T models.Allocation] interface {
 	GetAllAllocations() error
 	GetSum() float64
 	DeleteAll() error
+	GetItems() []T
+	GetSortedAllocations() []models.Allocation
 }
 
 type AllocationService struct {
@@ -16,9 +18,9 @@ type AllocationService struct {
 	allocations *[]models.Allocation
 }
 
-func NewAllocationService(repo *store.SqlDB, allocations *[]models.Allocation) AllocationServiceInterface {
+func NewAllocationService(repo *store.SqlDB, allocations *[]models.Allocation) *AllocationService {
 	return &AllocationService{
-		MonetaryService: *NewMonetaryService[models.Allocation](repo, models.Income{}, allocations),
+		MonetaryService: *NewMonetaryService[models.Allocation](repo, models.Allocation{}, allocations),
 		allocations:     allocations,
 	}
 }
@@ -29,4 +31,10 @@ func (s *AllocationService) GetAllAllocations() error {
 		return err
 	}
 	return nil
+}
+
+func (s *AllocationService) GetSortedAllocations() []models.Allocation {
+	sortedAllocations := s.GetItems()
+	models.SortAllocationsByAmount(&sortedAllocations)
+	return sortedAllocations
 }

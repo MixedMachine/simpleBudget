@@ -5,10 +5,12 @@ import (
 	"github.com/mixedmachine/simple-budget-app/internal/store"
 )
 
-type ExpenseServiceInterface interface {
+type ExpenseServiceInterface[T models.Expense] interface {
 	GetAllExpenses() error
 	GetSum() float64
 	DeleteAll() error
+	GetItems() []T
+	GetSortedExpenses() []models.Expense
 }
 
 type ExpenseService struct {
@@ -16,9 +18,9 @@ type ExpenseService struct {
 	expenses *[]models.Expense
 }
 
-func NewExpenseService(repo *store.SqlDB, expenses *[]models.Expense) ExpenseServiceInterface {
+func NewExpenseService(repo *store.SqlDB, expenses *[]models.Expense) *ExpenseService {
 	return &ExpenseService{
-		MonetaryService: *NewMonetaryService[models.Expense](repo, models.Income{}, expenses),
+		MonetaryService: *NewMonetaryService[models.Expense](repo, models.Expense{}, expenses),
 		expenses:        expenses,
 	}
 }
@@ -29,4 +31,10 @@ func (s *ExpenseService) GetAllExpenses() error {
 		return err
 	}
 	return nil
+}
+
+func (s *ExpenseService) GetSortedExpense() []models.Expense {
+	sortedExpense := s.GetItems()
+	models.SortExpenseByDate(&sortedExpense)
+	return sortedExpense
 }

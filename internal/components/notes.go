@@ -17,7 +17,7 @@ import (
 
 func CreateNotesComponent(
 	myWindow fyne.Window,
-	repo *(store.SqlDB),
+	repo *store.SqlDB,
 	notes *models.Notes,
 ) *fyne.Container {
 	autoSave := false

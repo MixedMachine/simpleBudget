@@ -92,9 +92,9 @@ func AllocateFunds(income *Income, expense *Expense, amount float64) *Allocation
 	}
 }
 
-func Filter[T TransactionItem](transactions *[]T, filterFunc func(t T) bool) *[]T {
+func Filter[T Income | Expense | Allocation](transactions []T, filterFunc func(t T) bool) *[]T {
 	var filtered []T
-	for _, t := range *transactions {
+	for _, t := range transactions {
 		if filterFunc(t) {
 			filtered = append(filtered, t)
 		}
@@ -117,6 +117,16 @@ func SortExpenseByDate(expense *[]Expense) {
 		for j := 0; j < len(*expense)-1; j++ {
 			if (*expense)[j].Date.After((*expense)[j+1].Date) {
 				(*expense)[j], (*expense)[j+1] = (*expense)[j+1], (*expense)[j]
+			}
+		}
+	}
+}
+
+func SortAllocationsByAmount(allocations *[]Allocation) {
+	for i := 0; i < len(*allocations); i++ {
+		for j := 0; j < len(*allocations)-1; j++ {
+			if (*allocations)[j].Amount < (*allocations)[j+1].Amount {
+				(*allocations)[j], (*allocations)[j+1] = (*allocations)[j+1], (*allocations)[j]
 			}
 		}
 	}
