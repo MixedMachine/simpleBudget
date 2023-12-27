@@ -4,3 +4,4 @@ bin/*
 .env
 *.db
 go.sum
+*simple-budget-app*
