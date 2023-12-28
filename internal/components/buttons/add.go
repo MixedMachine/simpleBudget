@@ -1,4 +1,4 @@
-package components
+package buttons
 
 import (
 	"errors"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/mixedmachine/simple-budget-app/internal/core"
 	"github.com/mixedmachine/simple-budget-app/internal/models"
-	"github.com/mixedmachine/simple-budget-app/internal/store"
 	"github.com/mixedmachine/simple-budget-app/internal/utils"
 
 	"fyne.io/fyne/v2"
@@ -18,13 +17,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Button) {
+func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button {
 	incomeList := simpleBudget.ListComponents["income"]
 	expenseList := simpleBudget.ListComponents["expense"]
 	allocationList := simpleBudget.ListComponents["allocation"]
 	var incomes []models.Income
 	var expenses []models.Expense
-	var allocations []models.Allocation
 
 	addIncome := widget.NewButton("Add Income", func() {
 		incomes = simpleBudget.IncomeService.GetSortedIncomes()
@@ -79,14 +77,13 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 					},
 				}
 
-				if err := store.Create(simpleBudget.Repo, &i); err != nil {
-					log.Fatal(err)
+				if err := simpleBudget.IncomeService.CreateItem(i); err != nil {
+					utils.HandleErr(simpleBudget.Window, err)
 				}
-				err = simpleBudget.IncomeService.GetAllIncomes()
 
 				incomeList.Refresh()
-				incomeTotal := store.GetSum(simpleBudget.Repo, incomes, "amount")
-				incomeAllocated := store.GetSum(simpleBudget.Repo, allocations, "amount")
+				incomeTotal := simpleBudget.IncomeService.GetSum()
+				incomeAllocated := simpleBudget.AllocationService.GetSum()
 				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
 					strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 					strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
@@ -153,18 +150,14 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 					},
 				}
 
-				if err := store.Create(simpleBudget.Repo, &e); err != nil {
-					log.Fatal(err)
+				if err := simpleBudget.ExpenseService.CreateItem(e); err != nil {
+					utils.HandleErr(simpleBudget.Window, err)
 				}
-				err = store.GetAll(simpleBudget.Repo, expenses)
-				if err != nil {
-					return
-				}
+
 				expenseList.Refresh()
 				simpleBudget.LabelComponents["expenseTotal"].Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
-					store.GetSum(simpleBudget.Repo, models.Expense{}, "amount"),
-					store.GetSum(simpleBudget.Repo, models.Expense{}, "amount")-
-						store.GetSum(simpleBudget.Repo, models.Allocation{}, "amount"))
+					simpleBudget.ExpenseService.GetSum(),
+					simpleBudget.ExpenseService.GetSum()-simpleBudget.AllocationService.GetSum())
 				simpleBudget.LabelComponents["expenseTotal"].Refresh()
 			}
 		}, simpleBudget.Window)
@@ -188,11 +181,10 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 				if err != nil {
 					amt = 0.0
 				}
-				hint += "Avail: $" + strconv.FormatFloat(store.GetSumWhere(
-					simpleBudget.Repo, incomes, "amount", "id = ?", incomeID,
-				)-store.GetSumWhere(
-					simpleBudget.Repo, allocations, "amount", "from_income_id = ?", incomeID,
-				)-amt, 'f', 2, 64)
+				hint += "Avail: $" + strconv.FormatFloat(
+					simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)-
+						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", incomeID)-
+						amt, 'f', 2, 64)
 				amountForm.HintText = hint
 				amountForm.Widget.Refresh()
 			}
@@ -214,11 +206,10 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 				}
 
 				incomeID := models.GetIncomeByName(&incomes, entryFromIncomeID.Selected).ID
-				hint += "Avail: $" + strconv.FormatFloat(store.GetSumWhere(
-					simpleBudget.Repo, incomes, "amount", "id = ?", incomeID,
-				)-store.GetSumWhere(
-					simpleBudget.Repo, allocations, "amount", "from_income_id = ?", incomeID,
-				)-amt, 'f', 2, 64)
+				hint += "Avail: $" + strconv.FormatFloat(
+					simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)-
+						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", incomeID)-
+						amt, 'f', 2, 64)
 				amountForm.HintText = hint
 				amountForm.Widget.Refresh()
 			}
@@ -231,7 +222,7 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 			}
 			if entryFromIncomeID.Selected != "" {
 				incomeID := models.GetIncomeByName(&incomes, entryFromIncomeID.Selected).ID
-				chosenIcomeAmount := store.GetSumWhere(simpleBudget.Repo, incomes, "amount", "id = ?", incomeID)
+				chosenIcomeAmount := simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)
 				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
 					log.Error(err)
@@ -272,35 +263,26 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*(widget.Butto
 					return
 				}
 
-				err = store.Update(simpleBudget.Repo, fromIncome.ID, fromIncome)
-				if err != nil {
-					return
+				if err = simpleBudget.IncomeService.UpdateItem(fromIncome); err != nil {
+					utils.HandleErr(simpleBudget.Window, err)
 				}
 
-				if err = store.Create(simpleBudget.Repo, &a); err != nil {
-					log.Fatal(err)
+				if err = simpleBudget.AllocationService.CreateItem(*a); err != nil {
+					utils.HandleErr(simpleBudget.Window, err)
 				}
-				err = store.GetAll(simpleBudget.Repo, allocations)
-				if err != nil {
-					return
-				}
-				err = store.GetAll(simpleBudget.Repo, incomes)
-				if err != nil {
-					return
-				}
+
 				allocationList.Refresh()
 				incomeList.Refresh()
-				incomeTotal := store.GetSum(simpleBudget.Repo, incomes, "amount")
-				incomeAllocated := store.GetSum(simpleBudget.Repo, allocations, "amount")
+				incomeTotal := simpleBudget.IncomeService.GetSum()
+				incomeAllocated := simpleBudget.AllocationService.GetSum()
 				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
 					strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 					strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 					strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
 				simpleBudget.LabelComponents["incomeTotal"].Refresh()
 				simpleBudget.LabelComponents["expenseTotal"].Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
-					store.GetSum(simpleBudget.Repo, models.Expense{}, "amount"),
-					store.GetSum(simpleBudget.Repo, models.Expense{}, "amount")-
-						store.GetSum(simpleBudget.Repo, models.Allocation{}, "amount"))
+					simpleBudget.ExpenseService.GetSum(),
+					simpleBudget.ExpenseService.GetSum()-simpleBudget.AllocationService.GetSum())
 				simpleBudget.LabelComponents["expenseTotal"].Refresh()
 			}
 		}, simpleBudget.Window)

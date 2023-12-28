@@ -34,6 +34,10 @@ dev: init
 	@echo "Running in dev mode..."
 	@go run ./main.go
 
+dev.quick:
+	@echo "Running in quick dev mode..."
+	@go run ./main.go
+
 debug: init
 	@echo "Debugging..."
 	@dlv debug ./main.go

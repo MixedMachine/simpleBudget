@@ -49,12 +49,46 @@ func (s *Service) GetElementExample() any {
 	return &s.element
 }
 
-func (s *MonetaryService[T]) GetItems() []T {
-	return *s.items
+func (s *MonetaryService[T]) GetItems() *[]T {
+	return s.items
+}
+
+func (s *MonetaryService[T]) CreateItem(item T) error {
+	if err := store.Create(s.GetRepo(), item); err != nil {
+		return err
+	}
+	if err := store.GetAll(s.GetRepo(), s.GetItems()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *MonetaryService[T]) UpdateItem(item T) error {
+	if err := store.Update(s.GetRepo(), item.GetID(), item); err != nil {
+		return err
+	}
+	if err := store.GetAll(s.GetRepo(), s.GetItems()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *MonetaryService[T]) DeleteItem(item T) error {
+	if err := store.Delete(s.GetRepo(), item.GetID(), s.GetElementExample()); err != nil {
+		return err
+	}
+	if err := store.GetAll(s.GetRepo(), s.GetItems()); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MonetaryService[T]) GetSum() float64 {
 	return store.GetSum(s.GetRepo(), s.GetElementExample(), "amount")
+}
+
+func (s *MonetaryService[T]) GetFilteredSum(query string, args ...interface{}) float64 {
+	return store.GetSumWhere(s.GetRepo(), s.GetElementExample(), "amount", query, args)
 }
 
 func (s *MonetaryService[T]) DeleteAll() error {

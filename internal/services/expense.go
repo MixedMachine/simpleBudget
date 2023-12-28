@@ -8,8 +8,12 @@ import (
 type ExpenseServiceInterface[T models.Expense] interface {
 	GetAllExpenses() error
 	GetSum() float64
+	GetFilteredSum(query string, args ...interface{}) float64
 	DeleteAll() error
-	GetItems() []T
+	GetItems() *[]T
+	CreateItem(item T) error
+	UpdateItem(item T) error
+	DeleteItem(item T) error
 	GetSortedExpenses() []models.Expense
 }
 
@@ -26,7 +30,7 @@ func NewExpenseService(repo *store.SqlDB, expenses *[]models.Expense) *ExpenseSe
 }
 
 func (s *ExpenseService) GetAllExpenses() error {
-	err := store.GetAll(s.repo, &s.expenses)
+	err := store.GetAll(s.repo, s.GetItems())
 	if err != nil {
 		return err
 	}
@@ -35,6 +39,6 @@ func (s *ExpenseService) GetAllExpenses() error {
 
 func (s *ExpenseService) GetSortedExpenses() []models.Expense {
 	sortedExpenses := s.GetItems()
-	models.SortExpenseByDate(&sortedExpenses)
-	return sortedExpenses
+	models.SortExpenseByDate(sortedExpenses)
+	return *sortedExpenses
 }

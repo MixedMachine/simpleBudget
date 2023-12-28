@@ -23,6 +23,7 @@ type SimpleBudget struct {
 	Notes             models.Notes
 	ListComponents    map[string]*widget.List
 	LabelComponents   map[string]*canvas.Text
+	ButtonComonents   map[string]*widget.Button
 }
 
 func (s *SimpleBudget) SetIcon() {

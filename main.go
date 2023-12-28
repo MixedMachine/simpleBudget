@@ -7,7 +7,8 @@ import (
 	"strconv"
 
 	"github.com/mixedmachine/simple-budget-app/internal/components"
-	. "github.com/mixedmachine/simple-budget-app/internal/components"
+	"github.com/mixedmachine/simple-budget-app/internal/components/buttons"
+	"github.com/mixedmachine/simple-budget-app/internal/components/lists"
 	"github.com/mixedmachine/simple-budget-app/internal/core"
 
 	"fyne.io/fyne/v2"
@@ -52,6 +53,8 @@ func main() {
 	incomeAllocated := simpleBudget.AllocationService.GetSum()
 
 	simpleBudget.LabelComponents = map[string]*canvas.Text{
+		"income":  canvas.NewText("Income", theme.ForegroundColor()),
+		"expense": canvas.NewText("Expenses", theme.ForegroundColor()),
 		"incomeTotal": canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
 			strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 			strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
@@ -63,14 +66,13 @@ func main() {
 			theme.ForegroundColor()),
 	}
 
-	simpleBudget.ListComponents = CreateListComponents(&simpleBudget)
-
-	addButtons := CreateAddButtons(&simpleBudget)
+	simpleBudget.ListComponents = lists.CreateListComponents(&simpleBudget)
+	simpleBudget.ButtonComonents = buttons.CreateAddButtons(&simpleBudget)
 
 	footerContainerAdds := container.New(layout.NewHBoxLayout(),
-		addButtons["addIncome"],
-		addButtons["addExpense"],
-		addButtons["addAllocation"],
+		simpleBudget.ButtonComonents["addIncome"],
+		simpleBudget.ButtonComonents["addExpense"],
+		simpleBudget.ButtonComonents["addAllocation"],
 	)
 
 	footerContainerAdds.Resize(fyne.NewSize(1000, 100))
@@ -79,17 +81,15 @@ func main() {
 		container.New(layout.NewCenterLayout(), footerContainerAdds),
 	)
 
-	incomeLabel := canvas.NewText("Income", color.White)
-	incomeLabel.TextSize = 20
-	incomeLabel.TextStyle = fyne.TextStyle{Bold: true}
+	simpleBudget.LabelComponents["income"].TextSize = 20
+	simpleBudget.LabelComponents["income"].TextStyle = fyne.TextStyle{Bold: true}
 
-	expenseLabel := canvas.NewText("Expenses", color.White)
-	expenseLabel.TextSize = 20
-	expenseLabel.TextStyle = fyne.TextStyle{Bold: true}
+	simpleBudget.LabelComponents["expense"].TextSize = 20
+	simpleBudget.LabelComponents["expense"].TextStyle = fyne.TextStyle{Bold: true}
 
 	incomeHeader := container.New(layout.NewVBoxLayout(),
 		container.New(layout.NewHBoxLayout(),
-			incomeLabel,
+			simpleBudget.LabelComponents["income"],
 			simpleBudget.LabelComponents["incomeTotal"],
 		),
 		container.NewBorder(
@@ -117,7 +117,7 @@ func main() {
 
 	expenseHeader := container.New(layout.NewVBoxLayout(),
 		container.New(layout.NewHBoxLayout(),
-			expenseLabel,
+			simpleBudget.LabelComponents["expense"],
 			simpleBudget.LabelComponents["expenseTotal"],
 		),
 		container.NewBorder(
