@@ -54,7 +54,7 @@ func (s *MonetaryService[T]) GetItems() *[]T {
 }
 
 func (s *MonetaryService[T]) CreateItem(item T) error {
-	if err := store.Create(s.GetRepo(), item); err != nil {
+	if err := store.Create(s.GetRepo(), &item); err != nil {
 		return err
 	}
 	if err := store.GetAll(s.GetRepo(), s.GetItems()); err != nil {
@@ -98,5 +98,6 @@ func (s *MonetaryService[T]) DeleteAll() error {
 			return err
 		}
 	}
+	s.items = new([]T)
 	return nil
 }

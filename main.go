@@ -49,16 +49,13 @@ func main() {
 	simpleBudget.SetUpRepo()
 	simpleBudget.SetUpServices()
 
-	incomeTotal := simpleBudget.IncomeService.GetSum()
-	incomeAllocated := simpleBudget.AllocationService.GetSum()
-
 	simpleBudget.LabelComponents = map[string]*canvas.Text{
 		"income":  canvas.NewText("Income", theme.ForegroundColor()),
 		"expense": canvas.NewText("Expenses", theme.ForegroundColor()),
 		"incomeTotal": canvas.NewText(fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
-			strconv.FormatFloat(incomeTotal, 'f', 2, 64),
-			strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
-			strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64)),
+			strconv.FormatFloat(simpleBudget.IncomeService.GetSum(), 'f', 2, 64),
+			strconv.FormatFloat(simpleBudget.AllocationService.GetSum(), 'f', 2, 64),
+			strconv.FormatFloat(simpleBudget.IncomeService.GetSum()-simpleBudget.AllocationService.GetSum(), 'f', 2, 64)),
 			theme.ForegroundColor()),
 		"expenseTotal": canvas.NewText(fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
 			simpleBudget.ExpenseService.GetSum(),
@@ -103,6 +100,13 @@ func main() {
 							err := simpleBudget.IncomeService.DeleteAll()
 							utils.HandleErr(simpleBudget.Window, err)
 							simpleBudget.ListComponents["income"].Refresh()
+							incomeTotal := simpleBudget.IncomeService.GetSum()
+							incomeAllocated := simpleBudget.AllocationService.GetSum()
+							simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+								strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+								strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+								strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
+							simpleBudget.LabelComponents["incomeTotal"].Refresh()
 						}
 					},
 					simpleBudget.Window,
@@ -131,6 +135,10 @@ func main() {
 							err := simpleBudget.ExpenseService.DeleteAll()
 							utils.HandleErr(simpleBudget.Window, err)
 							simpleBudget.ListComponents["expense"].Refresh()
+							simpleBudget.LabelComponents["expenseTotal"].Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+								simpleBudget.ExpenseService.GetSum(),
+								simpleBudget.ExpenseService.GetSum()-simpleBudget.AllocationService.GetSum())
+							simpleBudget.LabelComponents["expenseTotal"].Refresh()
 						}
 					},
 					simpleBudget.Window,

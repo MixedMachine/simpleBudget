@@ -169,7 +169,8 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 	})
 
 	addAllocation := widget.NewButton("Add Allocation", func() {
-
+		incomes = *simpleBudget.IncomeService.GetItems()
+		expenses = *simpleBudget.ExpenseService.GetItems()
 		entryAmount := widget.NewEntry()
 		amountForm := widget.NewFormItem("Amount", entryAmount)
 		entryFromIncomeID := widget.NewSelect(models.GetIncomeNames(&incomes), func(incomeName string) {
@@ -238,7 +239,7 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 			return nil
 		}
 
-		formItems := []*widget.FormItem{toExpenseIDForm, fromIncomeIDForm, amountForm}
+		formItems := []*widget.FormItem{fromIncomeIDForm, toExpenseIDForm, amountForm}
 
 		dialogAdd := dialog.NewForm("Add Allocation", "Add", "Cancel", formItems, func(ok bool) {
 			if ok {

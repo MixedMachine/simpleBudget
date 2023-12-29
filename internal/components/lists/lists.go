@@ -14,7 +14,6 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.List {
@@ -121,7 +120,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 					func(ok bool) {
 						if ok {
 							if err := simpleBudget.IncomeService.DeleteItem(incomes[i]); err != nil {
-								log.Fatal(err)
+								utils.HandleErr(simpleBudget.Window, err)
 							}
 						}
 						incomeList.Refresh()
@@ -219,7 +218,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 						}
 
 						if err := simpleBudget.ExpenseService.UpdateItem(expense); err != nil {
-							log.Fatal(err)
+							utils.HandleErr(simpleBudget.Window, err)
 						}
 					}
 					expenseList.Refresh()
