@@ -173,9 +173,11 @@ func main() {
 		),
 	)
 
+	simpleBudget.LabelComponents["allocationTotal"] = canvas.NewText(fmt.Sprintf("Total: $%.2f", simpleBudget.AllocationService.GetSum()), color.White)
+
 	allocationsHeader := container.NewBorder(
 		nil, nil,
-		canvas.NewText(fmt.Sprintf("Total: $%.2f", simpleBudget.AllocationService.GetSum()), color.White),
+		simpleBudget.LabelComponents["allocationTotal"],
 		widget.NewButton("clear", func() {
 			dialogPopUp := dialog.NewConfirm(
 				"Clear Allocations",
@@ -185,6 +187,21 @@ func main() {
 						err := simpleBudget.AllocationService.DeleteAll()
 						utils.HandleErr(simpleBudget.Window, err)
 						simpleBudget.ListComponents["allocation"].Refresh()
+						incomeTotal := simpleBudget.IncomeService.GetSum()
+						expenseTotal := simpleBudget.ExpenseService.GetSum()
+						incomeAllocated := simpleBudget.AllocationService.GetSum()
+						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
+							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
+						simpleBudget.LabelComponents["incomeTotal"].Refresh()
+						simpleBudget.LabelComponents["expenseTotal"].Text = fmt.Sprintf("Total: $%.2f \t Needed: $%.2f",
+							strconv.FormatFloat(expenseTotal, 'f', 2, 64),
+							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
+							strconv.FormatFloat(expenseTotal-incomeAllocated, 'f', 2, 64))
+						simpleBudget.LabelComponents["expenseTotal"].Refresh()
+						simpleBudget.LabelComponents["allocationTotal"].Text = fmt.Sprintf("Total: $%.2f", simpleBudget.AllocationService.GetSum())
+						simpleBudget.LabelComponents["allocationTotal"].Refresh()
 					}
 				}, simpleBudget.Window,
 			)

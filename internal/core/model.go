@@ -54,11 +54,11 @@ func (s *SimpleBudget) SetUpServices() {
 	var err error
 
 	s.IncomeService = services.NewIncomeService(s.Repo, models.NewIncomes())
-	err = s.IncomeService.GetAllIncomes()
+	err = s.IncomeService.RefreshIncomes()
 	utils.HandleErr(s.Window, err)
 
 	s.ExpenseService = services.NewExpenseService(s.Repo, models.NewExpenses())
-	err = s.ExpenseService.GetAllExpenses()
+	err = s.ExpenseService.RefreshExpenses()
 	utils.HandleErr(s.Window, err)
 
 	s.AllocationService = services.NewAllocationService(s.Repo, models.NewAllocations())

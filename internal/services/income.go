@@ -3,10 +3,11 @@ package services
 import (
 	"github.com/mixedmachine/simple-budget-app/internal/models"
 	"github.com/mixedmachine/simple-budget-app/internal/store"
+	"time"
 )
 
 type IncomeServiceInterface[T models.Income] interface {
-	GetAllIncomes() error
+	RefreshIncomes() error
 	GetSum() float64
 	GetFilteredSum(query string, args ...interface{}) float64
 	DeleteAll() error
@@ -15,6 +16,8 @@ type IncomeServiceInterface[T models.Income] interface {
 	UpdateItem(item T) error
 	DeleteItem(item T) error
 	GetSortedIncomes() []models.Income
+	FilterIncomesBeforeDate(date time.Time) []models.Income
+	GetIncomeByName(incomeName string) models.Income
 }
 
 type IncomeService struct {
@@ -27,7 +30,7 @@ func NewIncomeService(repo *store.SqlDB, incomes *[]models.Income) *IncomeServic
 	}
 }
 
-func (s *IncomeService) GetAllIncomes() error {
+func (s *IncomeService) RefreshIncomes() error {
 	if err := store.GetAll(s.GetRepo(), s.GetItems()); err != nil {
 		return err
 	}
@@ -38,4 +41,23 @@ func (s *IncomeService) GetSortedIncomes() []models.Income {
 	sortedIncomes := s.GetItems()
 	models.SortIncomeByDate(sortedIncomes)
 	return *sortedIncomes
+}
+
+func (s *IncomeService) FilterIncomesBeforeDate(date time.Time) []models.Income {
+	var filteredIncome []models.Income
+	for _, income := range *s.GetItems() {
+		if income.Date.Before(date) {
+			filteredIncome = append(filteredIncome, income)
+		}
+	}
+	return filteredIncome
+}
+
+func (s *IncomeService) GetIncomeByName(incomeName string) models.Income {
+	for _, income := range *s.GetItems() {
+		if income.Name == incomeName {
+			return income
+		}
+	}
+	return models.Income{}
 }

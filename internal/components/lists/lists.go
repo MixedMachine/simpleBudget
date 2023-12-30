@@ -96,7 +96,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 					incomeList.Refresh()
 					incomeTotal := simpleBudget.IncomeService.GetSum()
 					incomeAllocated := simpleBudget.AllocationService.GetSum()
-					simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+					simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 						strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 						strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 						strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
@@ -126,7 +126,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 						incomeList.Refresh()
 						incomeTotal := simpleBudget.IncomeService.GetSum()
 						incomeAllocated := simpleBudget.AllocationService.GetSum()
-						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
@@ -368,7 +368,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 						incomeList.Refresh()
 						incomeTotal := simpleBudget.IncomeService.GetSum()
 						incomeAllocated := simpleBudget.AllocationService.GetSum()
-						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
@@ -403,7 +403,7 @@ func CreateListComponents(simpleBudget *core.SimpleBudget) map[string]*widget.Li
 						incomeList.Refresh()
 						incomeTotal := simpleBudget.IncomeService.GetSum()
 						incomeAllocated := simpleBudget.AllocationService.GetSum()
-						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+						simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 							strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 							strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 							strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))

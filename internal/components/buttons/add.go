@@ -21,11 +21,8 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 	incomeList := simpleBudget.ListComponents["income"]
 	expenseList := simpleBudget.ListComponents["expense"]
 	allocationList := simpleBudget.ListComponents["allocation"]
-	var incomes []models.Income
-	var expenses []models.Expense
 
 	addIncome := widget.NewButton("Add Income", func() {
-		incomes = simpleBudget.IncomeService.GetSortedIncomes()
 		entryName := widget.NewEntry()
 		entryAmount := widget.NewEntry()
 		entryDate := widget.NewEntry()
@@ -84,7 +81,7 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 				incomeList.Refresh()
 				incomeTotal := simpleBudget.IncomeService.GetSum()
 				incomeAllocated := simpleBudget.AllocationService.GetSum()
-				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 					strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 					strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 					strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
@@ -169,61 +166,48 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 	})
 
 	addAllocation := widget.NewButton("Add Allocation", func() {
-		incomes = *simpleBudget.IncomeService.GetItems()
-		expenses = *simpleBudget.ExpenseService.GetItems()
 		entryAmount := widget.NewEntry()
 		amountForm := widget.NewFormItem("Amount", entryAmount)
-		entryFromIncomeID := widget.NewSelect(models.GetIncomeNames(&incomes), func(incomeName string) {
-			if incomeName != "" {
-				hint := ""
-				incomeID := models.GetIncomeByName(&incomes, incomeName).ID
-
-				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
-				if err != nil {
-					amt = 0.0
-				}
-				hint += "Avail: $" + strconv.FormatFloat(
-					simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)-
-						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", incomeID)-
-						amt, 'f', 2, 64)
-				amountForm.HintText = hint
-				amountForm.Widget.Refresh()
-			}
-		})
+		entryFromIncomeID := widget.NewSelect(append([]string{"(Select one)"}, models.GetIncomeNames(simpleBudget.IncomeService.GetItems())...), nil)
 		fromIncomeIDForm := widget.NewFormItem("From Income ID", entryFromIncomeID)
-		entryToExpenseID := widget.NewSelect(models.GetExpenseNames(&expenses), func(s string) {
-			filterDate := models.GetExpenseByName(&expenses, s).Date
-			filterBy := func(inc models.Income) bool { return utils.CompareDates(inc.Date, filterDate) == -1 }
-			entryFromIncomeID.Options = models.GetIncomeNames(models.Filter(incomes, filterBy))
-		})
+		entryToExpenseID := widget.NewSelect(append([]string{"(Select one)"}, models.GetExpenseNames(simpleBudget.ExpenseService.GetItems())...), nil)
 		toExpenseIDForm := widget.NewFormItem("To Expense ID", entryToExpenseID)
 
 		entryAmount.OnChanged = func(amount string) {
-			if entryFromIncomeID.Selected != "" {
+			if entryFromIncomeID.Selected != "" &&
+				entryFromIncomeID.Selected != "(Select one)" &&
+				entryToExpenseID.Selected != "" &&
+				entryToExpenseID.Selected != "(Select one)" {
 				hint := ""
 				amt, err := strconv.ParseFloat(amount, 64)
 				if err != nil {
 					amt = 0.0
 				}
 
-				incomeID := models.GetIncomeByName(&incomes, entryFromIncomeID.Selected).ID
+				income := simpleBudget.IncomeService.GetIncomeByName(entryFromIncomeID.Selected)
+				expense := simpleBudget.ExpenseService.GetExpenseByName(entryToExpenseID.Selected)
 				hint += "Avail: $" + strconv.FormatFloat(
-					simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)-
-						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", incomeID)-
+					simpleBudget.IncomeService.GetFilteredSum("id = ?", income.ID)-
+						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", income.ID)-
+						amt, 'f', 2, 64) +
+					"\t Needed: " + strconv.FormatFloat(
+					simpleBudget.ExpenseService.GetFilteredSum("id = ?", expense.ID)-
+						simpleBudget.AllocationService.GetFilteredSum("to_expense_id = ?", expense.ID)-
 						amt, 'f', 2, 64)
 				amountForm.HintText = hint
 				amountForm.Widget.Refresh()
 			}
 		}
-
 		entryAmount.Validator = func(s string) error {
 			_, err := strconv.ParseFloat(s, 64)
 			if err != nil {
 				return errors.New("invalid amount")
 			}
-			if entryFromIncomeID.Selected != "" {
-				incomeID := models.GetIncomeByName(&incomes, entryFromIncomeID.Selected).ID
-				chosenIcomeAmount := simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)
+			if entryFromIncomeID.Selected != "" &&
+				entryFromIncomeID.Selected != "(Select one)" &&
+				entryToExpenseID.Selected != "(Select one)" {
+				income := simpleBudget.IncomeService.GetIncomeByName(entryFromIncomeID.Selected)
+				chosenIcomeAmount := simpleBudget.IncomeService.GetFilteredSum("id = ?", income.ID)
 				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
 					log.Error(err)
@@ -239,13 +223,52 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 			return nil
 		}
 
+		entryFromIncomeID.OnChanged = func(incomeName string) {
+			if incomeName == "(Select one)" {
+				entryToExpenseID.Options = append(
+					[]string{"(Select one)"}, models.GetExpenseNames(simpleBudget.ExpenseService.GetItems())...,
+				)
+				entryToExpenseID.Refresh()
+			} else if incomeName != "" {
+				hint := ""
+				selectedIncome := simpleBudget.IncomeService.GetIncomeByName(incomeName)
+				incomeID := selectedIncome.ID
+				amt, err := strconv.ParseFloat(entryAmount.Text, 64)
+				if err != nil {
+					amt = 0.0
+				}
+				hint += "Avail: $" + strconv.FormatFloat(
+					simpleBudget.IncomeService.GetFilteredSum("id = ?", incomeID)-
+						simpleBudget.AllocationService.GetFilteredSum("from_income_id = ?", incomeID)-
+						amt, 'f', 2, 64)
+				amountForm.HintText = hint
+				amountForm.Widget.Refresh()
+				filteredExpenses := simpleBudget.ExpenseService.FilterExpensesAfterDate(selectedIncome.Date)
+				entryToExpenseID.Options = models.GetExpenseNames(&filteredExpenses)
+				entryToExpenseID.Refresh()
+			}
+		}
+		entryToExpenseID.OnChanged = func(expenseName string) {
+			if expenseName == "(Select one)" {
+				entryToExpenseID.Options = append(
+					[]string{"(Select one)"}, models.GetIncomeNames(simpleBudget.IncomeService.GetItems())...,
+				)
+				entryToExpenseID.Refresh()
+			} else if expenseName != "" {
+				selectedExpense := simpleBudget.ExpenseService.GetExpenseByName(expenseName)
+				filteredIncomes := simpleBudget.IncomeService.FilterIncomesBeforeDate(selectedExpense.Date)
+				entryFromIncomeID.Options = models.GetIncomeNames(&filteredIncomes)
+				entryFromIncomeID.Refresh()
+			}
+		}
+
 		formItems := []*widget.FormItem{fromIncomeIDForm, toExpenseIDForm, amountForm}
 
 		dialogAdd := dialog.NewForm("Add Allocation", "Add", "Cancel", formItems, func(ok bool) {
 			if ok {
-				fromIncome := models.GetIncomeByName(&incomes, entryFromIncomeID.Selected)
+				fromIncome := simpleBudget.IncomeService.GetIncomeByName(entryFromIncomeID.Selected)
 
-				toExpense := models.GetExpenseByName(&expenses, entryToExpenseID.Selected)
+				toExpense := simpleBudget.ExpenseService.GetExpenseByName(entryToExpenseID.Selected)
 
 				amount, err := strconv.ParseFloat(entryAmount.Text, 64)
 				if err != nil {
@@ -276,7 +299,7 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 				incomeList.Refresh()
 				incomeTotal := simpleBudget.IncomeService.GetSum()
 				incomeAllocated := simpleBudget.AllocationService.GetSum()
-				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tDifference: $%s",
+				simpleBudget.LabelComponents["incomeTotal"].Text = fmt.Sprintf("Total: $%s\tAllocated: $%s\tLeft: $%s",
 					strconv.FormatFloat(incomeTotal, 'f', 2, 64),
 					strconv.FormatFloat(incomeAllocated, 'f', 2, 64),
 					strconv.FormatFloat(incomeTotal-incomeAllocated, 'f', 2, 64))
@@ -285,6 +308,8 @@ func CreateAddButtons(simpleBudget *core.SimpleBudget) map[string]*widget.Button
 					simpleBudget.ExpenseService.GetSum(),
 					simpleBudget.ExpenseService.GetSum()-simpleBudget.AllocationService.GetSum())
 				simpleBudget.LabelComponents["expenseTotal"].Refresh()
+				simpleBudget.LabelComponents["allocationTotal"].Text = fmt.Sprintf("Total: $%.2f", simpleBudget.AllocationService.GetSum())
+				simpleBudget.LabelComponents["allocationTotal"].Refresh()
 			}
 		}, simpleBudget.Window)
 
